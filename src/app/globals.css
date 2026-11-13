@@ -1,0 +1,216 @@
+@import "tailwindcss";
+
+/*
+ * Theme: warm charcoal, "notebook at night". Dark is the only theme because
+ * the diary is mostly opened at dinner and before bed.
+ * Green is the one core colour. Amber (over) means "over target" and nothing
+ * else. Red (danger) is reserved for removing things.
+ * Every text pair below is checked at WCAG AA (lowest: muted on the rose
+ * focal tint, 5.22:1).
+ */
+@theme {
+  --color-bg: #15140f;
+  --color-surface: #1e1d18;
+  --color-surface-2: #27261f;
+  --color-line: #34322a;
+  --color-ink: #ece8dd;
+  --color-muted: #a39e8f;
+  --color-brand: #5cc98a;
+  --color-brand-strong: #77d69e;
+  --color-on-brand: #12110d;
+  --color-over: #e8a33d;
+  --color-danger: #f07a6a;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Headings and focal numbers: friendly, slightly hand-made grotesque. */
+  --font-display: var(--font-bricolage), var(--font-geist-sans), ui-sans-serif, sans-serif;
+
+  /*
+   * Tones derived from the theme colour, so every accent gets them for free.
+   * focal: the one most important card per screen (muted text on it 5.2:1+).
+   * meal-1..4: arcs of the plate ring, tinted toward the text colour (never
+   * darker than the accent, which would drop below 3:1 against the card).
+   */
+  --color-focal: color-mix(in oklab, var(--color-brand) 10%, var(--color-surface));
+  --color-meal-1: var(--color-brand);
+  --color-meal-2: color-mix(in oklab, var(--color-brand) 72%, var(--color-ink));
+  --color-meal-3: color-mix(in oklab, var(--color-brand) 48%, var(--color-ink));
+  --color-meal-4: color-mix(in oklab, var(--color-brand) 26%, var(--color-ink));
+}
+
+:root {
+  /* Native date pickers, selects and scrollbars follow the dark theme. */
+  color-scheme: dark;
+}
+
+/*
+ * Theme colour (Profile > Theme colour). Only the main colour changes;
+ * amber, red and the surfaces stay fixed. Values match lib/theme.ts.
+ * Contrast on #27261F / dark button text: blue 6.59 / 8.20, lavender
+ * 6.95 / 8.65, rose 7.38 / 9.18 (green: 7.36 / 9.15).
+ */
+:root[data-accent="blue"] {
+  --color-brand: #6ab0f3;
+  --color-brand-strong: #8cc2f6;
+}
+
+:root[data-accent="lavender"] {
+  --color-brand: #b9a3f5;
+  --color-brand-strong: #cbb9f8;
+}
+
+:root[data-accent="rose"] {
+  --color-brand: #f29bbe;
+  --color-brand-strong: #f6b4cf;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+@layer base {
+  a[href],
+  button,
+  summary,
+  select,
+  label,
+  input[type="date"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/*
+ * Shared component classes live in the components layer so a utility on the
+ * same element (e.g. `card px-2`) can still override them.
+ */
+@layer components {
+/* Calorie figures line up in columns: numbers are the content of this app. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Display type: page titles and the focal number on each screen. */
+.title {
+  @apply font-display text-[1.75rem] font-semibold leading-tight tracking-tight sm:text-[2rem];
+}
+
+.focal-number {
+  @apply font-display font-bold leading-none tracking-tight;
+  font-variant-numeric: tabular-nums;
+}
+
+.section-title {
+  @apply font-display text-lg font-semibold;
+}
+
+.field-label {
+  @apply mb-1 block text-sm font-medium text-ink;
+}
+
+.input {
+  @apply min-h-11 w-full rounded-[10px] border border-line bg-surface-2 px-3 py-2 text-base text-ink placeholder:text-muted hover:border-muted;
+}
+
+/* Radius steps: 24px focal card, 16px cards, 10px controls. */
+.card {
+  @apply rounded-2xl border border-line bg-surface p-4 sm:p-5;
+}
+
+/* The one most important card on a screen: tinted with the theme colour. */
+.card-focal {
+  @apply rounded-3xl border border-line bg-focal p-5 sm:p-6;
+}
+
+.btn-primary {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-brand px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-strong active:translate-y-px disabled:opacity-50 disabled:hover:bg-brand;
+}
+
+.btn-quiet {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-line bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-surface-2 active:translate-y-px disabled:opacity-50;
+}
+
+/* Square 44px control for icon-only actions. */
+.btn-icon {
+  @apply inline-flex size-11 shrink-0 items-center justify-center rounded-[10px] border border-line bg-surface text-ink hover:bg-surface-2 active:translate-y-px disabled:opacity-40;
+}
+
+.link {
+  @apply font-medium text-brand underline-offset-4 hover:underline;
+}
+
+/* A food that was just added: fades from the focal tint to normal. */
+.just-added {
+  animation: just-added 1.5s ease-out;
+}
+
+}
+
+/*
+ * Sheet: slides up from the bottom on phones, centred dialog from 640px.
+ * It is the only element with a shadow, because it really sits above the page.
+ */
+dialog.sheet {
+  margin: auto auto 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 88dvh;
+  overflow-y: auto;
+  border: 1px solid var(--color-line);
+  border-bottom: 0;
+  border-radius: 20px 20px 0 0;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  box-shadow: 0 -12px 40px rgb(0 0 0 / 0.45);
+}
+
+dialog.sheet[open] {
+  animation: sheet-in 180ms ease-out;
+}
+
+dialog.sheet::backdrop {
+  background: rgb(0 0 0 / 0.6);
+}
+
+@media (min-width: 640px) {
+  dialog.sheet {
+    margin: auto;
+    max-width: 28rem;
+    border-bottom: 1px solid var(--color-line);
+    border-radius: 16px;
+    padding: 1.25rem;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes just-added {
+  from {
+    background-color: color-mix(in oklab, var(--color-brand) 22%, var(--color-surface));
+  }
+}
