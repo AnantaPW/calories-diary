@@ -36,7 +36,7 @@ export default function WeekStrip({ date, today, totals, targetFor, onSelect }: 
   const weekLabel = `${first.toLocaleDateString(undefined, { day: "numeric", month: "short" })} to ${last.toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 lg:max-w-2xl">
       {/* Controls on their own row, so the seven days get the full width on small phones. */}
       <div className="flex items-center gap-2">
         <p className="num min-w-0 flex-1 text-sm text-muted">{weekLabel}</p>
@@ -85,7 +85,7 @@ export default function WeekStrip({ date, today, totals, targetFor, onSelect }: 
         </div>
       </div>
 
-      <ol className="grid grid-cols-7 gap-0.5 sm:gap-2" aria-label="Days this week">
+      <ol className="grid grid-cols-7 gap-0.5 sm:gap-2 lg:max-w-2xl" aria-label="Days this week">
         {days.map((d) => {
           const kcal = totals.get(d)?.calories;
           const selected = d === date;

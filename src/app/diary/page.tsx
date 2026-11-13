@@ -3,12 +3,10 @@
 import { Suspense, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DaySummary from "@/components/DaySummary";
-import FoodEntryForm from "@/components/FoodEntryForm";
-import { useAddFoods } from "@/components/LogFoodSheet";
 import MealList from "@/components/MealList";
 import StorageError from "@/components/StorageError";
 import WeekStrip from "@/components/WeekStrip";
-import { useMediaQuery, useToday } from "@/hooks/useClient";
+import { useToday } from "@/hooks/useClient";
 import { useEntries, useProfile } from "@/hooks/useDiary";
 import { openLog, setDiaryDate, showToast } from "@/lib/client/uiStore";
 import { dailyTotals } from "@/lib/calories";
@@ -30,10 +28,8 @@ function Diary() {
   const router = useRouter();
   const params = useSearchParams();
   const today = useToday();
-  const isWide = useMediaQuery("(min-width: 1024px)");
   const { entries, entriesForDate, removeEntry, restoreEntry, loaded, error } = useEntries();
   const { targetFor, error: profileError } = useProfile();
-  const addFoods = useAddFoods();
   const totals = useMemo(() => dailyTotals(entries), [entries]);
 
   // The day lives in the URL (?date=YYYY-MM-DD) so History can link to it.
@@ -87,22 +83,13 @@ function Diary() {
 
       <WeekStrip date={date} today={today} totals={totals} targetFor={targetFor} onSelect={setDate} />
 
-      <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6 lg:space-y-0">
-        <div className="space-y-4">
-          <DaySummary entries={dayEntries} target={targetFor(date)} />
-          <MealList
-            entries={dayEntries}
-            onRemove={handleRemove}
-            onAdd={(meal) => openLog({ meal, date })}
-          />
-        </div>
-
-        {/* From 1024px the form stays open beside the log; below that "+" opens it as a sheet. */}
-        {isWide && (
-          <aside className="card sticky top-6">
-            <FoodEntryForm key={date} date={date} onAdd={addFoods} />
-          </aside>
-        )}
+      {/*
+        Same layout as Today: plate and macros, then meals; side by side from
+        1024px. Adding food goes through the shared sheet ("+" / Log food / Add).
+      */}
+      <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start lg:gap-6 lg:space-y-0">
+        <DaySummary entries={dayEntries} target={targetFor(date)} />
+        <MealList entries={dayEntries} onRemove={handleRemove} onAdd={(meal) => openLog({ meal, date })} />
       </div>
     </div>
   );
