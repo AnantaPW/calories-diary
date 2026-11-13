@@ -57,7 +57,13 @@ export default function WeekStrip({ date, today, totals, targetFor, onSelect }: 
         >
           <ChevronRightIcon />
         </button>
-        <div className="relative">
+        {/*
+          overflow-hidden: phone browsers (Safari on iPhone in particular) give
+          native date inputs their own width and ignore the box, which pushed
+          this page wider than the screen and made the browser zoom the whole
+          Diary out. The input is invisible, so clipping it hides nothing.
+        */}
+        <div className="relative size-11 shrink-0 overflow-hidden rounded-[10px]">
           <button
             type="button"
             className="btn-icon"
@@ -77,7 +83,8 @@ export default function WeekStrip({ date, today, totals, targetFor, onSelect }: 
             type="date"
             tabIndex={-1}
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-0"
+            // Fixed to the button's size; 16px text so iPhones don't zoom in when the picker opens.
+            className="pointer-events-none absolute left-0 top-0 h-11 w-11 min-w-0 max-w-11 appearance-none text-base opacity-0"
             max={today}
             value={date}
             onChange={(e) => isDateKey(e.target.value) && onSelect(e.target.value)}
