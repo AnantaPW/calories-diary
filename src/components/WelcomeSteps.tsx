@@ -271,7 +271,7 @@ export default function WelcomeSteps() {
   }
 
   const prevLabel = step > 1 ? "Back" : null;
-  const nextLabel = ["", "Next: body", "Next: activity", "See my target", "Save target"][step];
+  const nextLabel = ["", "Next", "Next", "See my target", "Save target"][step];
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
