@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AI_INPUT_MAX, buildEstimatePrompt, parseEstimates } from "@/lib/estimate";
+import { AI_INPUT_MAX, ESTIMATE_SYSTEM_PROMPT, parseEstimates } from "@/lib/estimate";
 import { estimateLimiter } from "@/lib/server/auth";
 import { requireSession } from "@/lib/server/session";
 
@@ -56,7 +56,10 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
         model: process.env.DEEPSEEK_MODEL || DEFAULT_MODEL,
-        messages: [{ role: "user", content: buildEstimatePrompt(input) }],
+        messages: [
+          { role: "system", content: ESTIMATE_SYSTEM_PROMPT },
+          { role: "user", content: input },
+        ],
         temperature: 0,
         // deepseek-flash "thinks" by default and spends the token budget on it,
         // leaving an empty answer. A one-line estimate doesn't need it.
@@ -89,6 +92,9 @@ export async function POST(request: Request) {
       502,
       "Couldn't read the AI's answer. Try rewording, or enter it manually.",
     );
+  }
+  if (items.length === 0) {
+    return fail(422, "No food or drink found in that description. Try naming what you ate.");
   }
 
   return NextResponse.json({ items });
