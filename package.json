@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "reset-password": "node scripts/reset-password.mjs",
-    "test": "node --test src/lib/admin.test.ts src/lib/welcome.test.ts"
+    "test": "node --test src/lib/admin.test.ts src/lib/welcome.test.ts src/lib/greeting.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

@@ -5,10 +5,10 @@ import DayLoading from "@/components/DayLoading";
 import DaySummary from "@/components/DaySummary";
 import MealList from "@/components/MealList";
 import StorageError from "@/components/StorageError";
+import TodayHeader from "@/components/TodayHeader";
 import { useToday } from "@/hooks/useClient";
 import { useEntries, useProfile } from "@/hooks/useDiary";
 import { openLog } from "@/lib/client/uiStore";
-import { formatDateKey } from "@/lib/date";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
@@ -18,13 +18,7 @@ export default function TodayPage() {
   const { entriesForDate, loaded, error } = useEntries();
   const { targetFor, hasProfile, error: profileError } = useProfile();
 
-  const header = (
-    <div>
-      <h1 className="type-title">Today</h1>
-      {/* Reserves its line so the header doesn't jump once the date is known. */}
-      <p className="min-h-5 text-sm text-muted-foreground">{today && formatDateKey(today)}</p>
-    </div>
-  );
+  const header = <TodayHeader today={today} entries={loaded && today ? entriesForDate(today) : undefined} />;
 
   if (error || profileError) {
     return (
