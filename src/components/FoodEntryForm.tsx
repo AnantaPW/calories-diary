@@ -98,7 +98,7 @@ export default function FoodEntryForm({ date, onAdd, initialMeal, showHeading = 
       const data = await response.json().catch(() => null);
       const items: FoodEstimate[] | undefined = data?.items;
       if (!response.ok || !Array.isArray(items) || items.length === 0) {
-        setAiError(data?.error ?? "The estimate didn't come back. Try again, or use manual input.");
+        setAiError(data?.error ?? "No estimate came back. Try again or enter it manually.");
         return;
       }
       setReview({
@@ -113,7 +113,7 @@ export default function FoodEntryForm({ date, onAdd, initialMeal, showHeading = 
         })),
       });
     } catch {
-      setAiError("Couldn't reach the server. Check your connection, or use manual input.");
+      setAiError("Couldn't connect. Try again or enter it manually.");
     } finally {
       setAiBusy(false);
     }
@@ -234,9 +234,7 @@ export default function FoodEntryForm({ date, onAdd, initialMeal, showHeading = 
                     onChange={(e) => setAiText(e.target.value)}
                   />
                   <FieldDescription id={`${id}-ai-help`} className="text-xs">
-                    Up to {AI_INPUT_MAX} characters. List more than one food or drink and each gets its own entry.
-                    Your text is sent to DeepSeek, which estimates the calories, protein, carbs and fat. You check the
-                    numbers before anything is added.
+                    DeepSeek estimates each food separately. You review the numbers before anything is added.
                   </FieldDescription>
                 </Field>
                 <Button type="submit" className="w-full" disabled={aiText.trim() === "" || aiBusy}>
@@ -267,8 +265,7 @@ export default function FoodEntryForm({ date, onAdd, initialMeal, showHeading = 
                     {review.items.length === 1 ? "item" : "items"}
                   </AlertTitle>
                   <AlertDescription>
-                    These numbers are a guess, not measured values. Check or edit them, remove anything that&apos;s
-                    wrong, then choose whether to add them to your diary.
+                    These are estimates. Edit or remove anything wrong before adding.
                   </AlertDescription>
                 </Alert>
 
@@ -336,14 +333,14 @@ export default function FoodEntryForm({ date, onAdd, initialMeal, showHeading = 
 
                 <div className="grid grid-cols-2 gap-2">
                   <Button variant="outline" onClick={() => setReview(null)}>
-                    Don&apos;t add
+                    Discard
                   </Button>
                   <Button type="submit" disabled={!reviewValid}>
                     {review.items.length === 1 ? "Add to diary" : `Add ${review.items.length} items`}
                   </Button>
                 </div>
                 {!reviewValid && (
-                  <p className="text-xs text-muted-foreground">Every item needs a name and a calorie number.</p>
+                  <p className="text-xs text-muted-foreground">Each item needs a name and calories.</p>
                 )}
               </FieldGroup>
             </form>
@@ -421,7 +418,7 @@ export default function FoodEntryForm({ date, onAdd, initialMeal, showHeading = 
                 Add to diary
               </Button>
               {!manualValid && (
-                <p className="text-xs text-muted-foreground">Enter a food name and its calories to add it.</p>
+                <p className="text-xs text-muted-foreground">Enter a name and calories.</p>
               )}
             </FieldGroup>
           </form>

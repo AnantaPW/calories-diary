@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   if (wait > 0) {
     return fail(
       429,
-      `You've used AI input a lot in the last hour. Try again in ${Math.ceil(wait / 60000)} minutes, or use manual input.`,
+      `AI input limit reached. Try again in ${Math.ceil(wait / 60000)} minutes or enter it manually.`,
     );
   }
 
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
   if (!items) {
     return fail(
       502,
-      "The AI's answer wasn't a usable estimate. Try describing the food differently, or use manual input.",
+      "Couldn't read the AI's answer. Try rewording, or enter it manually.",
     );
   }
 

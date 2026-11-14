@@ -42,7 +42,8 @@ data/
 - **Location:** set `DATA_DIR` in `.env.local` (see `.env.example`). Relative paths start from the project folder; the default is `./data`. The folder is in `.gitignore`.
 - **Backups:** copy the whole folder. Each person's file can also be restored on its own.
 - **Hosting:** needs one server process with a real disk (`npm run build` then `npm start` on your own machine or a VPS). Platforms without a lasting disk, such as Vercel, would lose the data.
-- **New accounts:** anyone can use Create account until you set `ALLOW_SIGNUP=false`.
+- **New accounts:** anyone can use Create account until you set `ALLOW_SIGNUP=false`, or until an admin turns it off on the admin page (that choice is saved in `data/app.json` and wins over `ALLOW_SIGNUP`).
+- **Admins:** list usernames in `ADMIN_USERNAMES` (comma separated) in `.env.local`. They get an Admin link in Profile: account list, statistics, password reset, account delete and the sign-up switch. Admins see counts, never what anyone ate or weighs.
 - **Forgotten password:** there's no email, so reset it on the machine that holds the data:
 
   ```bash

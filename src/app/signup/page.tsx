@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import AuthForm from "@/components/AuthForm";
-import { getSession, signupAllowed } from "@/lib/server/session";
+import { signupAllowed } from "@/lib/server/admin";
+import { getSession } from "@/lib/server/session";
 import Wordmark from "@/components/Wordmark";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,16 +14,16 @@ export const metadata: Metadata = { title: "Create account · Calorie Diary" };
 export default async function SignupPage() {
   if (await getSession()) redirect("/");
 
-  if (!signupAllowed()) {
+  if (!(await signupAllowed())) {
     return (
       <div className="mx-auto w-full max-w-sm">
         <Wordmark />
         <Card>
           <CardHeader>
             <CardTitle>
-              <h1 className="type-section">Creating accounts is turned off</h1>
+              <h1 className="type-section">Sign-up is closed</h1>
             </CardTitle>
-            <CardDescription>New accounts are added by whoever runs this app.</CardDescription>
+            <CardDescription>Ask the app&apos;s admin for an account.</CardDescription>
           </CardHeader>
           <CardFooter>
             <Link href="/login" className={cn(buttonVariants(), "w-full")}>

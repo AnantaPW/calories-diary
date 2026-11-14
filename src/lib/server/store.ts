@@ -74,6 +74,17 @@ async function writeJsonAtomic(file: string, value: unknown): Promise<void> {
 
 const queues = new Map<string, Promise<unknown>>();
 
+/** Deletes a file after any queued write to it, so an in-flight save can't bring it back. */
+export function removeJson(file: string): Promise<void> {
+  const run = (queues.get(file) ?? Promise.resolve()).catch(() => {}).then(() => rm(file, { force: true }));
+  const tail = run.catch(() => {});
+  queues.set(file, tail);
+  void tail.then(() => {
+    if (queues.get(file) === tail) queues.delete(file);
+  });
+  return run;
+}
+
 /**
  * Read-modify-write one file, one change at a time per file.
  * `change` receives the current value (or `fallback` when the file doesn't

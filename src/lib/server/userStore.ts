@@ -1,7 +1,7 @@
 import "server-only";
 import { DEFAULT_MODE, DEFAULT_THEME, isMode } from "@/lib/theme";
 import type { UserData } from "@/lib/userData";
-import { dataPath, readJson, updateJson, type ReadResult } from "./store";
+import { dataPath, readJson, removeJson, updateJson, type ReadResult } from "./store";
 
 /*
  * One JSON file per person: data/users/<user-id>.json. The id always comes
@@ -56,3 +56,6 @@ export function updateUserData<R>(
     change(normalise(current)),
   );
 }
+
+/** Removes a person's diary file (account delete). A missing file is fine. */
+export const deleteUserData = (userId: string) => removeJson(userFile(userId));
