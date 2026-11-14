@@ -1,6 +1,7 @@
 "use client";
 
 import BrowserImport from "@/components/BrowserImport";
+import DayLoading from "@/components/DayLoading";
 import DaySummary from "@/components/DaySummary";
 import MealList from "@/components/MealList";
 import StorageError from "@/components/StorageError";
@@ -16,15 +17,15 @@ export default function TodayPage() {
 
   const header = (
     <div>
-      <h1 className="title">Today</h1>
+      <h1 className="type-title">Today</h1>
       {/* Reserves its line so the header doesn't jump once the date is known. */}
-      <p className="min-h-5 text-sm text-muted">{today && formatDateKey(today)}</p>
+      <p className="min-h-5 text-sm text-muted-foreground">{today && formatDateKey(today)}</p>
     </div>
   );
 
   if (error || profileError) {
     return (
-      <div className="space-y-5">
+      <div className="flex flex-col gap-5">
         {header}
         <StorageError />
       </div>
@@ -33,11 +34,9 @@ export default function TodayPage() {
 
   if (!loaded || !today) {
     return (
-      <div className="space-y-5">
+      <div className="flex flex-col gap-5">
         {header}
-        <p className="card-focal flex min-h-72 items-center justify-center text-sm text-muted" role="status">
-          Loading today&apos;s diary…
-        </p>
+        <DayLoading label="Loading today's diary" />
       </div>
     );
   }
@@ -45,15 +44,15 @@ export default function TodayPage() {
   const todays = entriesForDate(today);
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-5">
       {header}
       <BrowserImport />
 
-      <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start lg:gap-6 lg:space-y-0">
-        <div className="space-y-3">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start lg:gap-6">
+        <div className="flex flex-col gap-3">
           <DaySummary entries={todays} target={targetFor(today)} />
           {todays.length === 0 && (
-            <p className="px-1 text-sm text-muted">
+            <p className="px-1 text-sm text-muted-foreground">
               Nothing logged today yet. Use Log food, or Add on a meal, to start the count.
             </p>
           )}

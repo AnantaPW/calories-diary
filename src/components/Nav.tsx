@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { openLog } from "@/lib/client/uiStore";
+import { cn } from "@/lib/utils";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { LogoMark } from "./Wordmark";
 import { DiaryIcon, HistoryIcon, PlusIcon, ProfileIcon, TodayIcon } from "./icons";
 
 const LINKS = [
@@ -26,12 +29,16 @@ export default function Nav() {
         <Link
           href={href}
           aria-current={active ? "page" : undefined}
-          className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] active:bg-surface-2 ${
-            active ? "font-semibold text-brand" : "font-medium text-muted"
-          }`}
+          className={cn(
+            "group/tab flex h-16 flex-col items-center justify-center gap-1 text-[11px] transition-ui",
+            active ? "font-semibold text-primary" : "font-medium text-muted-foreground hover:text-foreground",
+          )}
         >
           <span
-            className={`flex h-7 w-12 items-center justify-center rounded-full ${active ? "bg-focal" : ""}`}
+            className={cn(
+              "flex h-7 w-12 items-center justify-center rounded-full transition-ui group-hover/tab:bg-muted group-active/tab:scale-95",
+              active && "bg-primary/15 group-hover/tab:bg-primary/15",
+            )}
           >
             <Icon />
           </span>
@@ -43,12 +50,13 @@ export default function Nav() {
 
   return (
     <>
-      <header className="border-b border-line">
+      <header className="border-b">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 sm:px-6 lg:max-w-5xl">
           <Link
             href="/"
-            className="flex min-h-12 items-center font-display text-lg font-bold tracking-tight text-ink sm:min-h-16 sm:text-xl"
+            className="flex min-h-12 items-center gap-2 font-heading text-lg font-bold tracking-tight text-foreground transition-ui hover:text-primary sm:min-h-16 sm:text-xl"
           >
+            <LogoMark size={26} />
             Calorie Diary
           </Link>
 
@@ -62,11 +70,10 @@ export default function Nav() {
                     <Link
                       href={l.href}
                       aria-current={active ? "page" : undefined}
-                      className={`flex min-h-11 items-center rounded-[10px] px-3 text-sm ${
-                        active
-                          ? "bg-focal font-semibold text-brand"
-                          : "font-medium text-muted hover:bg-surface hover:text-ink"
-                      }`}
+                      className={cn(
+                        buttonVariants({ variant: "ghost" }),
+                        active ? "bg-primary/15 font-semibold text-primary hover:bg-primary/15 hover:text-primary" : "text-muted-foreground",
+                      )}
                     >
                       {l.label}
                     </Link>
@@ -74,10 +81,10 @@ export default function Nav() {
                 );
               })}
             </ul>
-            <button type="button" className="btn-primary" onClick={() => openLog()}>
-              <PlusIcon width={18} height={18} />
+            <Button onClick={() => openLog()}>
+              <PlusIcon data-icon="inline-start" />
               Log food
-            </button>
+            </Button>
           </nav>
         </div>
       </header>
@@ -89,7 +96,7 @@ export default function Nav() {
       */}
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t bg-card pb-[env(safe-area-inset-bottom)] sm:hidden"
       >
         <ul className="grid grid-cols-5 items-center">
           {LINKS.slice(0, 2).map(tab)}
@@ -98,7 +105,7 @@ export default function Nav() {
               type="button"
               onClick={() => openLog()}
               aria-label="Log food"
-              className="-mt-5 flex size-14 items-center justify-center rounded-full border-4 border-bg bg-brand text-on-brand hover:bg-brand-strong active:translate-y-px"
+              className="-mt-5 flex size-14 items-center justify-center rounded-full border-4 border-background bg-primary text-primary-foreground transition-ui hover:bg-primary/85 active:scale-[0.97]"
             >
               <PlusIcon width={26} height={26} strokeWidth={2.25} />
             </button>

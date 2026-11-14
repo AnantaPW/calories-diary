@@ -3,10 +3,10 @@ import { MEAL_TYPES, type FoodEntry, type MealType } from "./types";
 
 /** Each meal's arc colour on the plate ring (tints of the theme colour). */
 export const MEAL_COLOR: Record<MealType, string> = {
-  breakfast: "var(--color-meal-1)",
-  lunch: "var(--color-meal-2)",
-  dinner: "var(--color-meal-3)",
-  snack: "var(--color-meal-4)",
+  breakfast: "var(--chart-1)",
+  lunch: "var(--chart-2)",
+  dinner: "var(--chart-3)",
+  snack: "var(--chart-4)",
 };
 
 export interface MealGroup {

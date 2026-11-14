@@ -2,7 +2,6 @@
 
 import { calculateDailyTarget, DEFAULT_PROFILE, recordTargetChange } from "@/lib/calories";
 import { toDateKey } from "@/lib/date";
-import type { Accent } from "@/lib/theme";
 import type { FoodEntry, UserProfile } from "@/lib/types";
 import type { MeResponse, UserData } from "@/lib/userData";
 import { reloadTo } from "./navigate";
@@ -129,10 +128,11 @@ export function saveProfile(profile: UserProfile) {
   );
 }
 
-export function saveAccent(accent: Accent) {
-  return mutate((data) => ({ ...data, settings: { ...data.settings, accent } }), {
+/** Saves the theme colour and/or mode; what's left out keeps its saved value. */
+export function saveSettings(settings: Partial<UserData["settings"]>) {
+  return mutate((data) => ({ ...data, settings: { ...data.settings, ...settings } }), {
     url: "/api/settings",
     method: "PUT",
-    body: { accent },
+    body: settings,
   });
 }

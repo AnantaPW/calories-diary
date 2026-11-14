@@ -7,7 +7,14 @@ import DayDetail from "@/components/DayDetail";
 import PlateRing from "@/components/PlateRing";
 import Sheet from "@/components/Sheet";
 import StorageError from "@/components/StorageError";
-import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
+import { ChevronLeftIcon, ChevronRightIcon, CleanPlateIcon } from "@/components/icons";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Item, ItemContent, ItemMedia } from "@/components/ui/item";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { useMediaQuery, useToday } from "@/hooks/useClient";
 import { useEntries, useProfile } from "@/hooks/useDiary";
 import { dailyTotals } from "@/lib/calories";
@@ -32,14 +39,14 @@ export default function HistoryPage() {
 
   const heading = (
     <div>
-      <h1 className="title">History</h1>
-      <p className="text-sm text-muted">Each day against the target you had at the time.</p>
+      <h1 className="type-title">History</h1>
+      <p className="text-sm text-muted-foreground">Each day against the target you had at the time.</p>
     </div>
   );
 
   if (error) {
     return (
-      <div className="space-y-5">
+      <div className="flex flex-col gap-5">
         {heading}
         <StorageError />
       </div>
@@ -48,11 +55,9 @@ export default function HistoryPage() {
 
   if (!today) {
     return (
-      <div className="space-y-5">
+      <div className="flex flex-col gap-5" role="status" aria-label="Loading your saved diary">
         {heading}
-        <p className="card min-h-72 text-sm text-muted" role="status">
-          Loading your saved diary…
-        </p>
+        <Skeleton className="h-96 rounded-xl" />
       </div>
     );
   }
@@ -88,137 +93,151 @@ export default function HistoryPage() {
   );
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-5">
       {heading}
 
-      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6">
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6">
         {/* Tighter side padding on phones keeps each day about 44px wide. */}
-        <section className="card px-2 sm:px-5" aria-label="Calendar">
+        <Card size="sm" className="sm:[--card-spacing:--spacing(5)]" role="region" aria-label="Calendar">
           {/* On narrow phones the controls drop to their own line instead of squeezing the month. */}
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-2 sm:px-0">
-            <h2 className="section-title whitespace-nowrap" aria-live="polite">
-              {formatMonthKey(month)}
-            </h2>
-            <div className="ml-auto flex items-center gap-2">
+          <CardHeader className="flex flex-wrap items-center justify-between gap-2 px-2 sm:px-(--card-spacing)">
+            <CardTitle className="type-section whitespace-nowrap" aria-live="polite">
+              <h2>{formatMonthKey(month)}</h2>
+            </CardTitle>
+            <CardAction className="ml-auto flex items-center gap-2">
               {month !== currentMonth && (
-                <button
-                  type="button"
-                  className="btn-quiet whitespace-nowrap"
-                  onClick={() => changeMonth(currentMonth)}
-                >
+                <Button variant="outline" onClick={() => changeMonth(currentMonth)}>
                   This month
-                </button>
+                </Button>
               )}
-              <button
-                type="button"
-                className="btn-icon"
+              <Button
+                variant="outline"
+                size="icon"
                 aria-label="Previous month"
                 onClick={() => changeMonth(shiftMonthKey(month, -1))}
               >
                 <ChevronLeftIcon />
-              </button>
-              <button
-                type="button"
-                className="btn-icon"
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
                 aria-label="Next month"
                 disabled={month >= currentMonth}
                 onClick={() => changeMonth(shiftMonthKey(month, 1))}
               >
                 <ChevronRightIcon />
-              </button>
-            </div>
-          </div>
+              </Button>
+            </CardAction>
+          </CardHeader>
 
-          <CalendarMonth
-            monthKey={month}
-            today={today}
-            totals={totals}
-            targetFor={targetFor}
-            selected={selected}
-            onSelect={setSelected}
-            onMonthChange={changeMonth}
-            busy={!loaded}
-          />
+          <CardContent className="flex flex-col gap-4 px-2 sm:px-(--card-spacing)">
+            <CalendarMonth
+              monthKey={month}
+              today={today}
+              totals={totals}
+              targetFor={targetFor}
+              selected={selected}
+              onSelect={setSelected}
+              onMonthChange={changeMonth}
+              busy={!loaded}
+            />
 
-          <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 px-2 text-xs text-muted sm:px-0" aria-label="Legend">
-            <li className="flex items-center gap-2">
-              <PlateRing segments={[{ key: "d", value: 70, color: "var(--color-brand)" }]} target={100} size={22} stroke={3} />
-              Within target
-            </li>
-            <li className="flex items-center gap-2">
-              <PlateRing segments={[{ key: "d", value: 130, color: "var(--color-brand)" }]} target={100} size={22} stroke={3} />
-              Over target (amber outside)
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="block size-5 rounded-md border border-muted" aria-hidden="true" />
-              Today
-            </li>
-          </ul>
+            <ul className="flex flex-wrap gap-x-5 gap-y-2 px-2 text-xs text-muted-foreground sm:px-0" aria-label="Legend">
+              <li className="flex items-center gap-2">
+                <PlateRing segments={[{ key: "d", value: 70, color: "var(--primary)" }]} target={100} size={22} stroke={3} />
+                Within target
+              </li>
+              <li className="flex items-center gap-2">
+                <PlateRing segments={[{ key: "d", value: 130, color: "var(--primary)" }]} target={100} size={22} stroke={3} />
+                Over target (amber outside)
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="block size-5 rounded-md border border-muted-foreground" aria-hidden="true" />
+                Today
+              </li>
+            </ul>
 
-          <div className="mx-2 mt-4 text-sm sm:mx-0">
+            <Separator />
+
             {!loaded ? (
-              <p className="border-t border-line pt-4 text-muted" role="status">
-                Loading your saved diary…
-              </p>
+              <Skeleton className="h-20" role="status" aria-label="Loading your saved diary" />
             ) : entries.length === 0 ? (
-              <div className="border-t border-line pt-4">
-                <p className="text-muted">
-                  Your history fills in as you log food. Each day you log becomes a small plate,
-                  filled by how much of your target you ate.
-                </p>
-                <Link href="/diary" className="btn-primary mt-3">
-                  Log today&apos;s food
-                </Link>
-              </div>
+              <Empty className="items-start p-0 text-left">
+                <EmptyHeader className="items-start">
+                  <EmptyMedia className="text-muted-foreground">
+                    <CleanPlateIcon />
+                  </EmptyMedia>
+                  <EmptyTitle>No history yet</EmptyTitle>
+                  <EmptyDescription>
+                    Your history fills in as you log food. Each day you log becomes a small plate, filled by how much
+                    of your target you ate.
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent className="items-start">
+                  <Link href="/diary" className={buttonVariants()}>
+                    Log today&apos;s food
+                  </Link>
+                </EmptyContent>
+              </Empty>
             ) : logged === 0 ? (
-              <p className="border-t border-line pt-4 text-muted">
+              <p className="px-2 text-sm text-muted-foreground sm:px-0">
                 Nothing logged in {formatMonthName(month)}. Pick a past day to add food to it.
               </p>
             ) : (
-              <div className="flex items-center gap-3 rounded-2xl bg-focal p-4 sm:gap-4">
-                <PlateRing
-                  segments={[{ key: "avg", value: kcalSum / logged, color: "var(--color-brand)" }]}
-                  target={targetSum / logged}
-                  size={56}
-                  stroke={6}
-                  label={`Average ${Math.round(kcalSum / logged).toLocaleString()} of ${Math.round(targetSum / logged).toLocaleString()} kcal`}
-                />
-                <dl className="num grid min-w-0 flex-1 grid-cols-3 gap-2 sm:gap-3">
-                  <div>
-                    <dt className="text-xs text-muted">Days logged</dt>
-                    <dd className="font-display text-lg font-semibold">{logged}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-muted">Average a day</dt>
-                    <dd className="font-display text-lg font-semibold">
-                      {Math.round(kcalSum / logged).toLocaleString()}
-                      <span className="font-sans text-xs font-normal text-muted"> kcal</span>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-muted">Over target</dt>
-                    <dd className={`font-display text-lg font-semibold ${overDays > 0 ? "text-over" : ""}`}>
-                      {overDays} {overDays === 1 ? "day" : "days"}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
+              <Item className="plate-glaze rounded-2xl bg-plate">
+                <ItemMedia>
+                  <PlateRing
+                    segments={[{ key: "avg", value: kcalSum / logged, color: "var(--primary)" }]}
+                    target={targetSum / logged}
+                    size={56}
+                    stroke={6}
+                    label={`Average ${Math.round(kcalSum / logged).toLocaleString()} of ${Math.round(targetSum / logged).toLocaleString()} kcal`}
+                  />
+                </ItemMedia>
+                <ItemContent>
+                  <dl className="grid min-w-0 grid-cols-3 gap-2 tabular-nums sm:gap-3">
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Days logged</dt>
+                      <dd className="font-heading text-lg font-semibold">{logged}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Average a day</dt>
+                      <dd className="font-heading text-lg font-semibold">
+                        {Math.round(kcalSum / logged).toLocaleString()}
+                        <span className="font-sans text-xs font-normal text-muted-foreground"> kcal</span>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Over target</dt>
+                      <dd className={cn("font-heading text-lg font-semibold", overDays > 0 && "text-over")}>
+                        {overDays} {overDays === 1 ? "day" : "days"}
+                      </dd>
+                    </div>
+                  </dl>
+                </ItemContent>
+              </Item>
             )}
-          </div>
-        </section>
+          </CardContent>
+        </Card>
 
         {/* From 1024px the selected day sits beside the calendar; below that it opens as a sheet. */}
         {isWide && (
-          <aside className="card" aria-label="Selected day">
+          <Card size="sm" role="region" aria-label="Selected day">
             {selected ? (
               <>
-                <h2 className="section-title mb-3">{formatDayLong(selected)}</h2>
-                {detail}
+                <CardHeader>
+                  <CardTitle className="type-section">
+                    <h2>{formatDayLong(selected)}</h2>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>{detail}</CardContent>
               </>
             ) : (
-              <p className="text-sm text-muted">Pick a day in the calendar to see what you ate.</p>
+              <CardContent className="text-sm text-muted-foreground">
+                Pick a day in the calendar to see what you ate.
+              </CardContent>
             )}
-          </aside>
+          </Card>
         )}
       </div>
 

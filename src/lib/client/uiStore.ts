@@ -1,19 +1,19 @@
 "use client";
 
+import { toast } from "@/components/ui/toast";
+import type { ReactNode } from "react";
 import type { MealType } from "@/lib/types";
 
 /*
  * App-wide UI state shared by components that aren't related in the tree:
  * the Add food sheet (opened from the "+" in the nav, Today, Diary or
- * History), the one toast, and which foods were just added (briefly
+ * History) and which foods were just added (briefly
  * highlighted in the lists).
  */
 
-export interface ToastMessage {
-  /** Changes with every new message so the timer restarts. */
-  id: number;
-  text: string;
-  action?: { label: string; run: () => void };
+export interface ToastAction {
+  label: string;
+  run: () => void;
 }
 
 export interface LogRequest {
@@ -28,11 +28,12 @@ interface UiState {
   log: LogRequest | null;
   /** Day the Diary is showing, so "+" adds to it. */
   diaryDate: string | null;
-  toast: ToastMessage | null;
   recent: string[];
+  /** Meal pointed at or focused in the meals card; its arc lights up on the plate. */
+  litMeal: MealType | null;
 }
 
-let state: UiState = { log: null, diaryDate: null, toast: null, recent: [] };
+let state: UiState = { log: null, diaryDate: null, recent: [], litMeal: null };
 const listeners = new Set<() => void>();
 const SERVER_STATE: UiState = state;
 
@@ -62,12 +63,23 @@ export function setDiaryDate(date: string | null) {
   if (state.diaryDate !== date) set({ diaryDate: date });
 }
 
-export function showToast(text: string, action?: ToastMessage["action"]) {
-  set({ toast: { id: Date.now(), text, action } });
+/** The app's one toast (the Toaster keeps a limit of one): "Added…", "Removed… Undo", save errors. */
+export function showToast(text: string, action?: ToastAction, icon?: ReactNode) {
+  const id: string = toast.add({
+    title: text,
+    data: icon ? { icon } : undefined,
+    actionProps: action && {
+      children: action.label,
+      onClick: () => {
+        action.run();
+        toast.close(id);
+      },
+    },
+  });
 }
 
-export function dismissToast() {
-  set({ toast: null });
+export function setLitMeal(meal: MealType | null) {
+  if (state.litMeal !== meal) set({ litMeal: meal });
 }
 
 const HIGHLIGHT_MS = 2000;

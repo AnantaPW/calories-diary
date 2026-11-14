@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="80" viewBox="0 0 360 80" role="img" aria-label="Calorie Diary">
+  <g transform="translate(4 8) scale(0.64)">
+    <circle cx="50" cy="50" r="37" fill="none" stroke="#E2E7E1" stroke-width="12"/>
+    <circle cx="50" cy="50" r="37" fill="none" stroke="#5cc98a" stroke-width="12" stroke-linecap="round" stroke-dasharray="69.7 232.5" transform="rotate(-90 50 50)"/>
+    <circle cx="85.19" cy="61.43" r="9.5" fill="#5cc98a" stroke="#F7F8F5" stroke-width="3"/>
+  </g>
+  <!-- Text needs Bricolage Grotesque installed; outline it before sending this file outside the app. -->
+  <text x="84" y="52" font-family="'Bricolage Grotesque', system-ui, sans-serif" font-size="36" font-weight="700" letter-spacing="-0.9" fill="#17201A">Calorie Diary</text>
+</svg>

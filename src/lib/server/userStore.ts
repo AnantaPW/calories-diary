@@ -1,5 +1,5 @@
 import "server-only";
-import { DEFAULT_ACCENT } from "@/lib/theme";
+import { DEFAULT_MODE, DEFAULT_THEME, isMode } from "@/lib/theme";
 import type { UserData } from "@/lib/userData";
 import { dataPath, readJson, updateJson, type ReadResult } from "./store";
 
@@ -20,7 +20,7 @@ export const emptyUserData = (): UserData => ({
   profile: null,
   targets: [],
   entries: [],
-  settings: { accent: DEFAULT_ACCENT },
+  settings: { ...DEFAULT_THEME },
 });
 
 /** Fills in anything an older or hand-edited file is missing. */
@@ -31,8 +31,13 @@ function normalise(data: Partial<UserData>): UserData {
     profile: data.profile ?? null,
     targets: Array.isArray(data.targets) ? data.targets : base.targets,
     entries: Array.isArray(data.entries) ? data.entries : base.entries,
-    settings: { ...base.settings, ...(data.settings ?? {}) },
+    settings: normaliseSettings({ ...base.settings, ...(data.settings ?? {}) }),
   };
+}
+
+/** The mode lands in an attribute on every page, so a hand-edited value falls back to the default. */
+function normaliseSettings(settings: UserData["settings"]): UserData["settings"] {
+  return isMode(settings.mode) ? settings : { ...settings, mode: DEFAULT_MODE };
 }
 
 export async function readUserData(userId: string): Promise<ReadResult<UserData>> {

@@ -1,24 +1,33 @@
 /**
- * The login and sign-up header: the name in the display face, with one empty
- * plate behind it. The plate is the app's own motif, the only decoration here.
+ * The Plate Ring logo (public/logo/ holds the file versions). Drawn inline so it
+ * follows the chosen accent and light or dark mode. It sits on the page background.
  */
+export function LogoMark({ size = 32 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true" className="shrink-0">
+      <circle cx="50" cy="50" r="37" fill="none" stroke="var(--border)" strokeWidth="12" />
+      <circle
+        cx="50"
+        cy="50"
+        r="37"
+        fill="none"
+        stroke="var(--primary)"
+        strokeWidth="12"
+        strokeLinecap="round"
+        strokeDasharray="69.7 232.5"
+        transform="rotate(-90 50 50)"
+      />
+      <circle cx="85.19" cy="61.43" r="9.5" fill="var(--primary)" stroke="var(--background)" strokeWidth="3" />
+    </svg>
+  );
+}
+
+/** The login and sign-up header: the logo above the name. */
 export default function Wordmark() {
   return (
-    <div className="relative mb-6 flex h-28 items-center justify-center">
-      <svg width="112" height="112" viewBox="0 0 112 112" className="absolute" aria-hidden="true">
-        <circle cx="56" cy="56" r="48" fill="none" stroke="var(--color-line)" strokeWidth="10" />
-        <circle
-          cx="56"
-          cy="56"
-          r="48"
-          fill="none"
-          stroke="var(--color-brand)"
-          strokeWidth="10"
-          strokeDasharray={`${2 * Math.PI * 48 * 0.18} ${2 * Math.PI * 48}`}
-          transform="rotate(-90 56 56)"
-        />
-      </svg>
-      <p className="relative font-display text-2xl font-bold tracking-tight">Calorie Diary</p>
+    <div className="mb-6 flex flex-col items-center gap-3">
+      <LogoMark size={72} />
+      <p className="font-heading text-2xl font-bold tracking-tight">Calorie Diary</p>
     </div>
   );
 }

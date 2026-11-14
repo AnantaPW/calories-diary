@@ -1,24 +1,28 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { ACCENTS, type Accent } from "@/lib/theme";
+import { ACCENTS, MODES, type Accent, type Mode, type Theme } from "@/lib/theme";
+import { Button } from "@/components/ui/button";
+import { Field, FieldContent, FieldDescription, FieldLabel, FieldTitle } from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface Props {
-  saved: Accent;
-  onSave: (accent: Accent) => void;
+  saved: Theme;
+  onSave: (theme: Theme) => void;
 }
 
-function setPageAccent(accent: Accent) {
+function setPageTheme({ accent, mode }: Theme) {
   document.documentElement.dataset.accent = accent;
+  document.documentElement.dataset.mode = mode;
 }
 
 /**
- * Theme colour choice. Picking a swatch previews it across the page right
- * away; leaving without saving puts the saved colour back.
+ * Light or dark, and the theme colour. Picking either previews it across the
+ * page right away; leaving without saving puts the saved theme back.
  */
 export default function ThemePicker({ saved, onSave }: Props) {
   const id = useId();
-  const [choice, setChoice] = useState<Accent>(saved);
+  const [choice, setChoice] = useState<Theme>(saved);
   const [justSaved, setJustSaved] = useState(false);
   const savedRef = useRef(saved);
 
@@ -27,82 +31,99 @@ export default function ThemePicker({ saved, onSave }: Props) {
   }, [saved]);
 
   // Leaving the page undoes an unsaved preview.
-  useEffect(() => () => setPageAccent(savedRef.current), []);
+  useEffect(() => () => setPageTheme(savedRef.current), []);
 
-  function pick(accent: Accent) {
-    setChoice(accent);
+  function pick(next: Partial<Theme>) {
+    const theme = { ...choice, ...next };
+    setChoice(theme);
     setJustSaved(false);
-    setPageAccent(accent);
+    setPageTheme(theme);
   }
 
-  const dirty = choice !== saved;
+  const dirty = choice.accent !== saved.accent || choice.mode !== saved.mode;
 
   return (
-    <section className="border-t border-line pt-6" aria-labelledby={`${id}-title`}>
-      <h2 id={`${id}-title`} className="section-title">
-        Theme colour
-      </h2>
-      <p className="mt-1 text-sm text-muted">
-        Changes the plates, buttons and links. Amber still means over target in every theme.
-      </p>
+    <section className="flex flex-col gap-5" aria-labelledby={`${id}-title`}>
+      <div>
+        <h2 id={`${id}-title`} className="type-section">
+          Theme
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Changes the page, plates, buttons and links. Amber still means over target in every theme.
+        </p>
+      </div>
 
-      <fieldset className="mt-4">
-        <legend className="sr-only">Theme colour</legend>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="flex flex-col gap-2">
+        <h3 id={`${id}-mode`} className="text-sm font-medium">
+          Light or dark
+        </h3>
+        <RadioGroup
+          aria-labelledby={`${id}-mode`}
+          className="grid grid-cols-1 gap-2 sm:grid-cols-3"
+          value={choice.mode}
+          onValueChange={(value) => pick({ mode: value as Mode })}
+        >
+          {MODES.map((m) => (
+            <FieldLabel key={m.value} htmlFor={`${id}-mode-${m.value}`} className="transition-ui active:translate-y-px">
+              <Field orientation="horizontal" className="items-center gap-3 p-3!">
+                <FieldContent>
+                  <FieldTitle>{m.label}</FieldTitle>
+                  <FieldDescription>{m.hint}</FieldDescription>
+                </FieldContent>
+                <RadioGroupItem value={m.value} id={`${id}-mode-${m.value}`} />
+              </Field>
+            </FieldLabel>
+          ))}
+        </RadioGroup>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <h3 id={`${id}-colour`} className="text-sm font-medium">
+          Colour
+        </h3>
+        <RadioGroup
+          aria-labelledby={`${id}-colour`}
+          className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+          value={choice.accent}
+          onValueChange={(value) => pick({ accent: value as Accent })}
+        >
           {ACCENTS.map((a) => (
-            <label key={a.value} className="relative block">
-              <input
-                type="radio"
-                name={`${id}-accent`}
-                value={a.value}
-                checked={choice === a.value}
-                onChange={() => pick(a.value)}
-                className="peer sr-only"
-              />
-              <span className="flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2 text-sm hover:border-muted peer-checked:border-ink peer-checked:bg-surface-2 peer-checked:font-semibold peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-brand">
-                {/* A small plate in this colour: what the theme will look like. */}
+            <FieldLabel key={a.value} htmlFor={`${id}-${a.value}`} className="transition-ui active:translate-y-px">
+              <Field orientation="horizontal" className="items-center gap-3 p-3!">
+                {/* A small plate in this colour, as it looks in the current mode. */}
                 <svg width="36" height="36" viewBox="0 0 36 36" className="shrink-0 -rotate-90" aria-hidden="true">
-                  <circle cx="18" cy="18" r="14" fill="none" stroke="var(--color-line)" strokeWidth="5" />
+                  <circle cx="18" cy="18" r="14" fill="none" stroke="var(--border)" strokeWidth="5" />
                   <circle
                     cx="18"
                     cy="18"
                     r="14"
                     fill="none"
-                    stroke={a.color}
+                    style={{ stroke: `light-dark(${a.light}, ${a.color})` }}
                     strokeWidth="5"
                     strokeDasharray={`${2 * Math.PI * 14 * 0.68} ${2 * Math.PI * 14}`}
                   />
-                  {choice === a.value && (
-                    <path
-                      d="m12.5 18.5 4 4 7-7"
-                      transform="rotate(90 18 18)"
-                      fill="none"
-                      stroke="var(--color-ink)"
-                      strokeWidth="2.5"
-                      strokeLinecap="square"
-                    />
-                  )}
                 </svg>
-                {a.label}
-              </span>
-            </label>
+                <FieldContent>
+                  <FieldTitle>{a.label}</FieldTitle>
+                </FieldContent>
+                <RadioGroupItem value={a.value} id={`${id}-${a.value}`} />
+              </Field>
+            </FieldLabel>
           ))}
-        </div>
-      </fieldset>
+        </RadioGroup>
+      </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          className="btn-primary"
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
           disabled={!dirty}
           onClick={() => {
             onSave(choice);
             setJustSaved(true);
           }}
         >
-          {justSaved && !dirty ? "Saved" : "Save colour"}
-        </button>
-        {dirty && <span className="text-sm text-muted">Previewing. Save to keep it.</span>}
+          {justSaved && !dirty ? "Saved" : "Save theme"}
+        </Button>
+        {dirty && <span className="text-sm text-muted-foreground">Previewing. Save to keep it.</span>}
       </div>
     </section>
   );

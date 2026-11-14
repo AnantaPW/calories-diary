@@ -3,6 +3,9 @@
 import { useRef } from "react";
 import { formatDayLong, fromDateKey, isDateKey, shiftDateKey } from "@/lib/date";
 import type { MacroTotals } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import PlateRing from "./PlateRing";
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from "./icons";
 
@@ -36,37 +39,32 @@ export default function WeekStrip({ date, today, totals, targetFor, onSelect }: 
   const weekLabel = `${first.toLocaleDateString(undefined, { day: "numeric", month: "short" })} to ${last.toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
 
   return (
-    <div className="space-y-2 lg:max-w-2xl">
+    <div className="flex flex-col gap-2 lg:max-w-2xl">
       {/* Controls on their own row, so the seven days get the full width on small phones. */}
       <div className="flex items-center gap-2">
-        <p className="num min-w-0 flex-1 text-sm text-muted">{weekLabel}</p>
-        <button
-          type="button"
-          className="btn-icon"
-          aria-label="Previous week"
-          onClick={() => onSelect(shiftDateKey(date, -7))}
-        >
+        <p className="min-w-0 flex-1 text-sm text-muted-foreground tabular-nums">{weekLabel}</p>
+        <Button variant="outline" size="icon" aria-label="Previous week" onClick={() => onSelect(shiftDateKey(date, -7))}>
           <ChevronLeftIcon />
-        </button>
-        <button
-          type="button"
-          className="btn-icon"
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
           aria-label="Next week"
           disabled={nextWeek > today}
           onClick={() => onSelect(shiftDateKey(date, 7) > today ? today : shiftDateKey(date, 7))}
         >
           <ChevronRightIcon />
-        </button>
+        </Button>
         {/*
           overflow-hidden: phone browsers (Safari on iPhone in particular) give
           native date inputs their own width and ignore the box, which pushed
           this page wider than the screen and made the browser zoom the whole
           Diary out. The input is invisible, so clipping it hides nothing.
         */}
-        <div className="relative size-11 shrink-0 overflow-hidden rounded-[10px]">
-          <button
-            type="button"
-            className="btn-icon"
+        <div className="relative size-11 shrink-0 overflow-hidden rounded-lg">
+          <Button
+            variant="outline"
+            size="icon"
             aria-label="Pick a date"
             onClick={() => {
               const input = pickerRef.current;
@@ -76,7 +74,7 @@ export default function WeekStrip({ date, today, totals, targetFor, onSelect }: 
             }}
           >
             <CalendarIcon />
-          </button>
+          </Button>
           {/* The native picker, opened by the button above. */}
           <input
             ref={pickerRef}
@@ -92,44 +90,48 @@ export default function WeekStrip({ date, today, totals, targetFor, onSelect }: 
         </div>
       </div>
 
-      <ol className="grid grid-cols-7 gap-0.5 sm:gap-2 lg:max-w-2xl" aria-label="Days this week">
+      <ToggleGroup
+        aria-label="Days this week"
+        spacing={1}
+        className="grid w-full grid-cols-7 sm:gap-2 lg:max-w-2xl"
+        value={[date]}
+        onValueChange={(value) => value[0] && onSelect(value[0])}
+      >
         {days.map((d) => {
           const kcal = totals.get(d)?.calories;
           const selected = d === date;
-          const future = d > today;
           const target = targetFor(d);
           const day = fromDateKey(d);
           return (
-            <li key={d} className="min-w-0">
-              <button
-                type="button"
-                disabled={future}
-                aria-pressed={selected}
-                aria-current={d === today ? "date" : undefined}
-                aria-label={`${d === today ? "Today, " : ""}${formatDayLong(d)}${
-                  kcal !== undefined ? `, ${Math.round(kcal).toLocaleString()} of ${target.toLocaleString()} kcal` : ", nothing logged"
-                }`}
-                onClick={() => onSelect(d)}
-                className={`flex w-full flex-col items-center gap-1 rounded-xl border py-2 ${
-                  selected ? "border-brand bg-focal" : "border-transparent hover:bg-surface"
-                } ${future ? "opacity-40" : "active:translate-y-px"}`}
-              >
-                <span className={`text-[11px] ${selected ? "font-semibold text-ink" : "text-muted"}`}>
-                  {day.toLocaleDateString(undefined, { weekday: "narrow" })}
-                </span>
+            <ToggleGroupItem
+              key={d}
+              value={d}
+              variant="outline"
+              disabled={d > today}
+              aria-current={d === today ? "date" : undefined}
+              aria-label={`${d === today ? "Today, " : ""}${formatDayLong(d)}${
+                kcal !== undefined ? `, ${Math.round(kcal).toLocaleString()} of ${target.toLocaleString()} kcal` : ", nothing logged"
+              }`}
+              className="h-auto min-w-0 flex-col gap-1 rounded-xl border-transparent px-0 py-2"
+            >
+              <span className={cn("text-[11px]", selected ? "font-semibold text-foreground" : "text-muted-foreground")}>
+                {day.toLocaleDateString(undefined, { weekday: "narrow" })}
+              </span>
+              {/* Marked so the Diary can morph this plate into the big one when the day opens. */}
+              <span data-day-plate={d} className="inline-flex rounded-full">
                 <PlateRing
-                  segments={kcal ? [{ key: "day", value: kcal, color: "var(--color-brand)" }] : []}
+                  segments={kcal ? [{ key: "day", value: kcal, color: "var(--primary)" }] : []}
                   target={target}
                   size={34}
                   stroke={3}
                 >
-                  <span className={`num text-xs ${d === today ? "font-bold" : ""}`}>{day.getDate()}</span>
+                  <span className={cn("text-xs tabular-nums", d === today && "font-bold")}>{day.getDate()}</span>
                 </PlateRing>
-              </button>
-            </li>
+              </span>
+            </ToggleGroupItem>
           );
         })}
-      </ol>
+      </ToggleGroup>
     </div>
   );
 }

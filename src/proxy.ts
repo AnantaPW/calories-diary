@@ -20,5 +20,5 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // API routes answer 401 themselves; static files need no check.
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|logo/|images/).*)"],
 };

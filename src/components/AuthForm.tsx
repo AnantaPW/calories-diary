@@ -4,6 +4,14 @@ import Link from "next/link";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { reloadTo } from "@/lib/client/navigate";
 import Wordmark from "@/components/Wordmark";
+import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
+import { Spinner } from "@/components/ui/spinner";
 import {
   PASSWORD_MIN,
   USERNAME_MAX,
@@ -13,7 +21,7 @@ import {
 } from "@/lib/userData";
 
 type Mode = "login" | "signup";
-type Field = "username" | "password" | "confirm";
+type AuthField = "username" | "password" | "confirm";
 
 interface Props {
   mode: Mode;
@@ -30,10 +38,10 @@ export default function AuthForm({ mode, signupAllowed }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<Field, string>>>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<AuthField, string>>>({});
   const summaryRef = useRef<HTMLDivElement>(null);
 
-  function fail(message: string, field?: Field) {
+  function fail(message: string, field?: AuthField) {
     setFormError(message);
     setFieldErrors(field ? { [field]: message } : {});
     // Move focus to the summary so screen readers hear what went wrong.
@@ -77,128 +85,132 @@ export default function AuthForm({ mode, signupAllowed }: Props) {
     setBusy(false);
   }
 
-  const describedBy = (field: Field, help?: string) =>
+  const describedBy = (field: AuthField, help?: string) =>
     [fieldErrors[field] ? `${id}-${field}-error` : "", help ?? ""].filter(Boolean).join(" ") ||
     undefined;
 
-  const fieldError = (field: Field) =>
+  const fieldError = (field: AuthField) =>
     fieldErrors[field] && (
-      <p id={`${id}-${field}-error`} className="mt-1 text-sm text-over">
+      <FieldError id={`${id}-${field}-error`} role="none">
         {fieldErrors[field]}
-      </p>
+      </FieldError>
     );
+
+  const passwordType = showPassword ? "text" : "password";
 
   return (
     <div className="mx-auto w-full max-w-sm">
       <Wordmark />
 
-      <div className="card space-y-4">
-        <h1 className="title">{signup ? "Create account" : "Log in"}</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h1 className="type-title">{signup ? "Create account" : "Log in"}</h1>
+          </CardTitle>
+        </CardHeader>
 
-        <div ref={summaryRef} tabIndex={-1} role="alert" className="outline-none">
-          {formError && (
-            <p className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-over">
-              {formError}
-            </p>
-          )}
-        </div>
-
-        <form onSubmit={handleSubmit} noValidate className="space-y-4">
-          <div>
-            <label htmlFor={`${id}-username`} className="field-label">
-              Username
-            </label>
-            <input
-              id={`${id}-username`}
-              className="input"
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
-              maxLength={USERNAME_MAX}
-              aria-invalid={!!fieldErrors.username}
-              aria-describedby={describedBy("username", signup ? `${id}-username-help` : undefined)}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            {signup && (
-              <p id={`${id}-username-help`} className="mt-1 text-xs text-muted">
-                {USERNAME_MIN} to {USERNAME_MAX} characters: letters, numbers, _ and -.
-              </p>
+        <CardContent className="flex flex-col gap-4">
+          <div ref={summaryRef} tabIndex={-1} role="alert" className="outline-none">
+            {formError && (
+              <Alert variant="destructive">
+                <AlertDescription className="text-destructive">{formError}</AlertDescription>
+              </Alert>
             )}
-            {fieldError("username")}
           </div>
 
-          <div>
-            <div className="flex items-baseline justify-between gap-2">
-              <label htmlFor={`${id}-password`} className="field-label">
-                Password
-              </label>
-              <button
-                type="button"
-                className="min-h-11 px-1 text-sm font-medium text-brand hover:underline"
-                aria-pressed={showPassword}
-                aria-controls={`${id}-password`}
-                onClick={() => setShowPassword((s) => !s)}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-            <input
-              id={`${id}-password`}
-              className="input"
-              type={showPassword ? "text" : "password"}
-              autoComplete={signup ? "new-password" : "current-password"}
-              aria-invalid={!!fieldErrors.password}
-              aria-describedby={describedBy("password", signup ? `${id}-password-help` : undefined)}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {signup && (
-              <p id={`${id}-password-help`} className="num mt-1 text-xs text-muted">
-                At least {PASSWORD_MIN} characters ({Math.min(password.length, PASSWORD_MIN)} of{" "}
-                {PASSWORD_MIN}). A longer phrase is stronger than symbols.
-              </p>
-            )}
-            {fieldError("password")}
-          </div>
+          <form onSubmit={handleSubmit} noValidate>
+            <FieldGroup className="gap-5">
+              <Field data-invalid={!!fieldErrors.username || undefined}>
+                <FieldLabel htmlFor={`${id}-username`}>Username</FieldLabel>
+                <Input
+                  id={`${id}-username`}
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  maxLength={USERNAME_MAX}
+                  aria-invalid={!!fieldErrors.username || undefined}
+                  aria-describedby={describedBy("username", signup ? `${id}-username-help` : undefined)}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+                {signup && (
+                  <FieldDescription id={`${id}-username-help`} className="text-xs">
+                    {USERNAME_MIN} to {USERNAME_MAX} characters: letters, numbers, _ and -.
+                  </FieldDescription>
+                )}
+                {fieldError("username")}
+              </Field>
 
-          {signup && (
-            <div>
-              <label htmlFor={`${id}-confirm`} className="field-label">
-                Confirm password
-              </label>
-              <input
-                id={`${id}-confirm`}
-                className="input"
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                aria-invalid={!!fieldErrors.confirm}
-                aria-describedby={describedBy("confirm")}
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-              />
-              {fieldError("confirm")}
-            </div>
-          )}
+              <Field data-invalid={!!fieldErrors.password || undefined}>
+                <FieldLabel htmlFor={`${id}-password`}>Password</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    id={`${id}-password`}
+                    type={passwordType}
+                    autoComplete={signup ? "new-password" : "current-password"}
+                    aria-invalid={!!fieldErrors.password || undefined}
+                    aria-describedby={describedBy("password", signup ? `${id}-password-help` : undefined)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      size="sm"
+                      className="h-9 px-3 text-primary"
+                      aria-pressed={showPassword}
+                      aria-controls={`${id}-password`}
+                      onClick={() => setShowPassword((s) => !s)}
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
+                {signup && (
+                  <FieldDescription id={`${id}-password-help`} className="text-xs tabular-nums">
+                    At least {PASSWORD_MIN} characters ({Math.min(password.length, PASSWORD_MIN)} of {PASSWORD_MIN}). A
+                    longer phrase is stronger than symbols.
+                  </FieldDescription>
+                )}
+                {fieldError("password")}
+              </Field>
 
-          <button type="submit" className="btn-primary w-full" disabled={busy}>
-            {signup ? (busy ? "Creating account…" : "Create account") : busy ? "Logging in…" : "Log in"}
-          </button>
-        </form>
-      </div>
+              {signup && (
+                <Field data-invalid={!!fieldErrors.confirm || undefined}>
+                  <FieldLabel htmlFor={`${id}-confirm`}>Confirm password</FieldLabel>
+                  <Input
+                    id={`${id}-confirm`}
+                    type={passwordType}
+                    autoComplete="new-password"
+                    aria-invalid={!!fieldErrors.confirm || undefined}
+                    aria-describedby={describedBy("confirm")}
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                  />
+                  {fieldError("confirm")}
+                </Field>
+              )}
 
-      <p className="mt-4 text-center text-sm text-muted">
+              <Button type="submit" className="w-full" disabled={busy}>
+                {busy && <Spinner data-icon="inline-start" />}
+                {signup ? (busy ? "Creating account…" : "Create account") : busy ? "Logging in…" : "Log in"}
+              </Button>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </Card>
+
+      <p className="mt-4 text-center text-sm text-muted-foreground">
         {signup ? (
           <>
             Already have an account?{" "}
-            <Link href="/login" className="link inline-flex min-h-11 items-center">
+            <Link href="/login" className={cn(buttonVariants({ variant: "link" }), "px-1")}>
               Log in
             </Link>
           </>
         ) : signupAllowed ? (
           <>
             No account yet?{" "}
-            <Link href="/signup" className="link inline-flex min-h-11 items-center">
+            <Link href="/signup" className={cn(buttonVariants({ variant: "link" }), "px-1")}>
               Create account
             </Link>
           </>

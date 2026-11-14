@@ -6,11 +6,11 @@ import {
   addEntries as storeAddEntries,
   diaryStore,
   removeEntry as storeRemoveEntry,
-  saveAccent,
+  saveSettings,
   saveProfile,
 } from "@/lib/client/diaryStore";
 import { newId } from "@/lib/storage";
-import { DEFAULT_ACCENT } from "@/lib/theme";
+import { DEFAULT_THEME } from "@/lib/theme";
 import type { FoodEntry, TargetChange } from "@/lib/types";
 
 export { DEFAULT_PROFILE };
@@ -94,13 +94,13 @@ export function useProfile() {
   );
 }
 
-/** Who is signed in and their theme colour. */
+/** Who is signed in and their theme (colour and mode). */
 export function useAccount() {
   const state = useDiaryState();
   return {
     username: state.status === "ready" ? state.username : null,
-    accent: state.status === "ready" ? state.data.settings.accent : DEFAULT_ACCENT,
+    theme: state.status === "ready" ? state.data.settings : DEFAULT_THEME,
     loaded: state.status !== "loading",
-    setAccent: saveAccent,
+    setTheme: saveSettings,
   };
 }

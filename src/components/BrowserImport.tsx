@@ -4,6 +4,9 @@ import { useState, useSyncExternalStore } from "react";
 import { diaryStore } from "@/lib/client/diaryStore";
 import { LEGACY_KEYS } from "@/lib/storage";
 import { reloadTo } from "@/lib/client/navigate";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 /*
  * Before accounts, the diary lived in this browser's localStorage. This
@@ -54,9 +57,9 @@ export default function BrowserImport() {
 
   if (message) {
     return (
-      <p role="status" className="card text-sm">
-        {message}
-      </p>
+      <Alert role="status">
+        <AlertDescription className="text-foreground">{message}</AlertDescription>
+      </Alert>
     );
   }
   if (dismissed || count === 0) return null;
@@ -107,19 +110,23 @@ export default function BrowserImport() {
   }
 
   return (
-    <section className="card" aria-label="Diary saved in this browser">
-      <p className="text-sm">
-        This browser has <span className="num font-semibold">{count}</span> diary{" "}
-        {count === 1 ? "entry" : "entries"} from before accounts.
-      </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" className="btn-primary" disabled={busy} onClick={importAll}>
-          {busy ? "Adding…" : "Add them to your account"}
-        </button>
-        <button type="button" className="btn-quiet" disabled={busy} onClick={leave}>
-          Leave them
-        </button>
-      </div>
-    </section>
+    <Alert role="region" aria-label="Diary saved in this browser">
+      <AlertTitle>Diary saved in this browser</AlertTitle>
+      <AlertDescription className="flex flex-col items-start gap-3">
+        <p>
+          This browser has <span className="font-semibold text-foreground tabular-nums">{count}</span> diary{" "}
+          {count === 1 ? "entry" : "entries"} from before accounts.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button disabled={busy} onClick={importAll}>
+            {busy && <Spinner data-icon="inline-start" />}
+            {busy ? "Adding…" : "Add them to your account"}
+          </Button>
+          <Button variant="outline" disabled={busy} onClick={leave}>
+            Leave them
+          </Button>
+        </div>
+      </AlertDescription>
+    </Alert>
   );
 }
