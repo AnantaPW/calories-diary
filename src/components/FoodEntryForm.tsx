@@ -1,15 +1,17 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useId, useMemo, useState, type FormEvent } from "react";
+import { useEntries } from "@/hooks/useDiary";
 import { mealForTime } from "@/lib/calories";
 import { AI_INPUT_MAX, type FoodEstimate } from "@/lib/estimate";
+import { recentFoods, type RecentFood } from "@/lib/recent";
 import { MEAL_TYPES, type FoodEntry, type MealType } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Item, ItemContent, ItemGroup } from "@/components/ui/item";
+import { Item, ItemActions, ItemContent, ItemGroup, ItemTitle } from "@/components/ui/item";
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -17,7 +19,7 @@ import MealGlyph from "./MealGlyph";
 import { ChevronRightIcon, CleanPlateIcon, CloseIcon } from "./icons";
 
 type NewEntry = Omit<FoodEntry, "id" | "createdAt">;
-type Mode = "ai" | "manual";
+type Mode = "recent" | "ai" | "manual";
 
 interface Props {
   date: string;
@@ -55,7 +57,9 @@ const itemValid = (item: ReviewItem) =>
 
 export default function FoodEntryForm({ date, onAdd, initialMeal, showHeading = true }: Props) {
   const id = useId();
-  const [mode, setMode] = useState<Mode>("manual");
+  const { entries } = useEntries();
+  const recent = useMemo(() => recentFoods(entries), [entries]);
+  const [mode, setMode] = useState<Mode>(() => ("ai"));
   const [meal, setMeal] = useState<MealType>(() => initialMeal ?? mealForTime());
 
   // Manual input: one food.
@@ -152,6 +156,10 @@ export default function FoodEntryForm({ date, onAdd, initialMeal, showHeading = 
     setAiText("");
   }
 
+  function addRecent(food: RecentFood) {
+    onAdd([{ ...food, date, meal, name: food.name.trim() }]);
+  }
+
   function submitManual(e: FormEvent) {
     e.preventDefault();
     if (!manualValid) return;
@@ -207,9 +215,42 @@ export default function FoodEntryForm({ date, onAdd, initialMeal, showHeading = 
 
       <Tabs value={mode} onValueChange={(v) => switchMode(v as Mode)} className="gap-4">
         <TabsList aria-label="How to enter the food" className="w-full">
-          <TabsTrigger value="ai">AI input</TabsTrigger>
-          <TabsTrigger value="manual">Manual input</TabsTrigger>
+          {recent.length > 0 && <TabsTrigger value="recent">Recent</TabsTrigger>}
+          <TabsTrigger value="ai">AI Input</TabsTrigger>
+          <TabsTrigger value="manual">Manual Input</TabsTrigger>
         </TabsList>
+
+        {recent.length > 0 && (
+          <TabsContent value="recent">
+            <FieldGroup className="gap-4">
+              {mealField}
+              <FieldSet>
+                <FieldLegend variant="label">Recent foods</FieldLegend>
+                <FieldDescription className="text-xs">
+                  Foods you logged lately, newest first. Tap one to add it to the chosen meal.
+                </FieldDescription>
+                <ItemGroup className="gap-2">
+                  {recent.map((food) => (
+                    <Item
+                      key={food.name.trim().toLowerCase()}
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-left hover:bg-muted"
+                      render={<button type="button" onClick={() => addRecent(food)} />}
+                    >
+                      <ItemContent className="min-w-0">
+                        <ItemTitle className="truncate">{food.name}</ItemTitle>
+                      </ItemContent>
+                      <ItemActions className="text-sm text-muted-foreground tabular-nums">
+                        {Math.round(food.calories).toLocaleString()} kcal
+                      </ItemActions>
+                    </Item>
+                  ))}
+                </ItemGroup>
+              </FieldSet>
+            </FieldGroup>
+          </TabsContent>
+        )}
 
         <TabsContent value="ai">
           {/* AI input, step 1: describe what was eaten. */}
