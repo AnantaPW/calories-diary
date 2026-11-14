@@ -25,7 +25,7 @@ type AuthField = "username" | "password" | "confirm";
 
 interface Props {
   mode: Mode;
-  /** Sign-up can be switched off with ALLOW_SIGNUP=false. */
+  /** Sign-up can be switched off by an admin or with ALLOW_SIGNUP=false. */
   signupAllowed: boolean;
 }
 
@@ -58,7 +58,7 @@ export default function AuthForm({ mode, signupAllowed }: Props) {
       if (u) return fail(u, "username");
       const p = passwordProblem(password, name);
       if (p) return fail(p, "password");
-      if (confirm !== password) return fail("The two passwords don't match.", "confirm");
+      if (confirm !== password) return fail("Passwords don't match.", "confirm");
     } else if (!name || !password) {
       return fail("Enter your username and password.", !name ? "username" : "password");
     }
@@ -74,7 +74,8 @@ export default function AuthForm({ mode, signupAllowed }: Props) {
       });
       if (response.ok) {
         // A full load so the layout picks up the account's theme colour.
-        reloadTo("/");
+        // New accounts go to first-run setup; it sends anyone with a profile on to Today.
+        reloadTo(signup ? "/welcome" : "/");
         return;
       }
       const data = await response.json().catch(() => null);
@@ -167,8 +168,7 @@ export default function AuthForm({ mode, signupAllowed }: Props) {
                 </InputGroup>
                 {signup && (
                   <FieldDescription id={`${id}-password-help`} className="text-xs tabular-nums">
-                    At least {PASSWORD_MIN} characters ({Math.min(password.length, PASSWORD_MIN)} of {PASSWORD_MIN}). A
-                    longer phrase is stronger than symbols.
+                    At least {PASSWORD_MIN} characters ({Math.min(password.length, PASSWORD_MIN)} of {PASSWORD_MIN}).
                   </FieldDescription>
                 )}
                 {fieldError("password")}
@@ -215,7 +215,7 @@ export default function AuthForm({ mode, signupAllowed }: Props) {
             </Link>
           </>
         ) : (
-          "New accounts are added by whoever runs this app."
+          "Sign-up is closed. Ask the app's admin for an account."
         )}
       </p>
     </div>

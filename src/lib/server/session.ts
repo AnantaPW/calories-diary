@@ -32,7 +32,7 @@ export function sameOrigin(request: Request): boolean {
   }
 }
 
-type Guarded =
+export type Guarded =
   | { ok: true; session: ActiveSession }
   | { ok: false; response: NextResponse };
 
@@ -74,6 +74,3 @@ export function clientIp(request: Request): string {
     "local"
   );
 }
-
-/** Sign-up is on unless ALLOW_SIGNUP=false. */
-export const signupAllowed = () => process.env.ALLOW_SIGNUP !== "false";

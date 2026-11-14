@@ -14,6 +14,8 @@ export interface UserData {
 /** What GET /api/me returns. */
 export interface MeResponse {
   username: string;
+  /** Shows the Admin link in Profile; the admin page and API check again on the server. */
+  isAdmin: boolean;
   data: UserData;
 }
 

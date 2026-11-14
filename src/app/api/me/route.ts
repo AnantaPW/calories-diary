@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { extendSession, SESSION_COOKIE } from "@/lib/server/auth";
+import { isAdmin } from "@/lib/server/admin";
 import { jsonError, requireSession, setSessionCookie } from "@/lib/server/session";
 import { readUserData } from "@/lib/server/userStore";
 import type { MeResponse } from "@/lib/userData";
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   const data = await readUserData(session.user.id);
   if (data.status !== "ok") return jsonError(500, "unreadable");
 
-  const body: MeResponse = { username: session.user.username, data: data.value };
+  const body: MeResponse = { username: session.user.username, isAdmin: isAdmin(session.user), data: data.value };
   const response = NextResponse.json(body, { headers: { "Cache-Control": "no-store" } });
 
   // Keep active people logged in: push the expiry back (at most once a day).

@@ -5,8 +5,8 @@ import {
   jsonError,
   sameOrigin,
   setSessionCookie,
-  signupAllowed,
 } from "@/lib/server/session";
+import { signupAllowed } from "@/lib/server/admin";
 import { passwordProblem, usernameProblem } from "@/lib/userData";
 
 /** 10 new accounts per address per hour. */
@@ -14,7 +14,7 @@ const signupLimiter = new RateLimiter(10, 60 * 60 * 1000);
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return jsonError(403, "Request blocked: it didn't come from this app.");
-  if (!signupAllowed()) return jsonError(403, "Creating accounts is turned off for this app.");
+  if (!(await signupAllowed())) return jsonError(403, "Sign-up is closed.");
 
   const ip = clientIp(request);
   const wait = signupLimiter.retryAfter(ip);

@@ -8,7 +8,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface Props {
   saved: Theme;
-  onSave: (theme: Theme) => void;
+  onSave?: (theme: Theme) => void;
+  /** First-run setup: no Save button here; the page saves the pick with everything else. */
+  onPick?: (theme: Theme) => void;
 }
 
 function setPageTheme({ accent, mode }: Theme) {
@@ -20,7 +22,7 @@ function setPageTheme({ accent, mode }: Theme) {
  * Light or dark, and the theme colour. Picking either previews it across the
  * page right away; leaving without saving puts the saved theme back.
  */
-export default function ThemePicker({ saved, onSave }: Props) {
+export default function ThemePicker({ saved, onSave, onPick }: Props) {
   const id = useId();
   const [choice, setChoice] = useState<Theme>(saved);
   const [justSaved, setJustSaved] = useState(false);
@@ -38,6 +40,7 @@ export default function ThemePicker({ saved, onSave }: Props) {
     setChoice(theme);
     setJustSaved(false);
     setPageTheme(theme);
+    onPick?.(theme);
   }
 
   const dirty = choice.accent !== saved.accent || choice.mode !== saved.mode;
@@ -46,10 +49,11 @@ export default function ThemePicker({ saved, onSave }: Props) {
     <section className="flex flex-col gap-5" aria-labelledby={`${id}-title`}>
       <div>
         <h2 id={`${id}-title`} className="type-section">
-          Theme
+          {onPick ? "Theme (optional)" : "Theme"}
         </h2>
         <p className="text-sm text-muted-foreground">
-          Changes the page, plates, buttons and links. Amber still means over target in every theme.
+          Amber always means over target.
+          {onPick && " You can change this later in Profile."}
         </p>
       </div>
 
@@ -67,10 +71,10 @@ export default function ThemePicker({ saved, onSave }: Props) {
             <FieldLabel key={m.value} htmlFor={`${id}-mode-${m.value}`} className="transition-ui active:translate-y-px">
               <Field orientation="horizontal" className="items-center gap-3 p-3!">
                 <FieldContent>
-                  <FieldTitle>{m.label}</FieldTitle>
+                  <FieldTitle id={`${id}-mode-${m.value}-title`}>{m.label}</FieldTitle>
                   <FieldDescription>{m.hint}</FieldDescription>
                 </FieldContent>
-                <RadioGroupItem value={m.value} id={`${id}-mode-${m.value}`} />
+                <RadioGroupItem value={m.value} id={`${id}-mode-${m.value}`} aria-labelledby={`${id}-mode-${m.value}-title`} />
               </Field>
             </FieldLabel>
           ))}
@@ -104,27 +108,29 @@ export default function ThemePicker({ saved, onSave }: Props) {
                   />
                 </svg>
                 <FieldContent>
-                  <FieldTitle>{a.label}</FieldTitle>
+                  <FieldTitle id={`${id}-${a.value}-title`}>{a.label}</FieldTitle>
                 </FieldContent>
-                <RadioGroupItem value={a.value} id={`${id}-${a.value}`} />
+                <RadioGroupItem value={a.value} id={`${id}-${a.value}`} aria-labelledby={`${id}-${a.value}-title`} />
               </Field>
             </FieldLabel>
           ))}
         </RadioGroup>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          disabled={!dirty}
-          onClick={() => {
-            onSave(choice);
-            setJustSaved(true);
-          }}
-        >
-          {justSaved && !dirty ? "Saved" : "Save theme"}
-        </Button>
-        {dirty && <span className="text-sm text-muted-foreground">Previewing. Save to keep it.</span>}
-      </div>
+      {onSave && (
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            disabled={!dirty}
+            onClick={() => {
+              onSave(choice);
+              setJustSaved(true);
+            }}
+          >
+            {justSaved && !dirty ? "Saved" : "Save theme"}
+          </Button>
+          {dirty && <span className="text-sm text-muted-foreground">Previewing. Save to keep it.</span>}
+        </div>
+      )}
     </section>
   );
 }

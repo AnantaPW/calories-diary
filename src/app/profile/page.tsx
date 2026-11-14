@@ -3,21 +3,12 @@
 import { useId, useState, type FormEvent } from "react";
 import AccountSection from "@/components/AccountSection";
 import StorageError from "@/components/StorageError";
+import TargetCard from "@/components/TargetCard";
 import ThemePicker from "@/components/ThemePicker";
 import { useAccount, useProfile } from "@/hooks/useDiary";
-import {
-  ACTIVITY_LABELS,
-  ACTIVITY_MULTIPLIERS,
-  GOAL_ADJUSTMENT,
-  GOAL_LABELS,
-  MIN_TARGET,
-  calculateBMR,
-  calculateDailyTarget,
-  calculateTDEE,
-} from "@/lib/calories";
+import { ACTIVITY_LABELS, GOAL_LABELS } from "@/lib/calories";
 import type { ActivityLevel, Goal, Sex, UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
@@ -28,66 +19,10 @@ const heading = (
   <div>
     <h1 className="type-title">Profile and settings</h1>
     <p className="text-sm text-muted-foreground">
-      Your body details set the daily calorie target (Mifflin–St Jeor equation).
+      Your details set your daily target (Mifflin–St Jeor).
     </p>
   </div>
 );
-
-/** Explains in plain numbers where the target comes from. */
-function TargetCard({ draft, unsaved }: { draft: UserProfile; unsaved: boolean }) {
-  const bmr = calculateBMR(draft);
-  const tdee = calculateTDEE(draft);
-  const target = calculateDailyTarget(draft);
-  const adjustment = GOAL_ADJUSTMENT[draft.goal];
-  const calculated = tdee + adjustment;
-  const custom = !!draft.customTarget && draft.customTarget > 0;
-  const floored = !custom && calculated < MIN_TARGET[draft.sex];
-
-  return (
-    <Card variant="plate" role="region" aria-label="Daily target">
-      <CardHeader>
-        <CardDescription>Daily target</CardDescription>
-        <p className="type-focal">
-          {target.toLocaleString()}
-          <span className="ml-2 font-sans text-base font-medium text-muted-foreground">kcal</span>
-        </p>
-        {unsaved && <p className="text-sm text-over">Not saved yet. Save to use this target.</p>}
-      </CardHeader>
-
-      <CardContent className="flex flex-col gap-3 text-sm">
-      <Separator />
-      <dl className="flex flex-col gap-2 tabular-nums">
-        <div className="flex justify-between gap-3">
-          <dt className="text-muted-foreground">BMR (energy at rest)</dt>
-          <dd>{bmr.toLocaleString()} kcal</dd>
-        </div>
-        <div className="flex justify-between gap-3">
-          <dt className="text-muted-foreground">× activity {ACTIVITY_MULTIPLIERS[draft.activity]} = TDEE</dt>
-          <dd>{tdee.toLocaleString()} kcal</dd>
-        </div>
-        <div className="flex justify-between gap-3">
-          <dt className="text-muted-foreground">{GOAL_LABELS[draft.goal]}</dt>
-          <dd>
-            {adjustment === 0 ? "no change" : `${adjustment > 0 ? "+" : "−"}${Math.abs(adjustment)} kcal`}
-          </dd>
-        </div>
-      </dl>
-      {custom && (
-        <p className="text-muted-foreground">
-          You set a custom target. The calculated one would be{" "}
-          {Math.max(MIN_TARGET[draft.sex], calculated).toLocaleString()} kcal.
-        </p>
-      )}
-      {floored && (
-        <p className="text-muted-foreground">
-          The sum comes to {calculated.toLocaleString()} kcal, so the target is raised to the{" "}
-          {MIN_TARGET[draft.sex].toLocaleString()} kcal minimum.
-        </p>
-      )}
-      </CardContent>
-    </Card>
-  );
-}
 
 function ProfileForm({
   profile,
@@ -186,7 +121,7 @@ function ProfileForm({
 
 export default function ProfilePage() {
   const { profile, setProfile, loaded, error } = useProfile();
-  const { username, theme, setTheme } = useAccount();
+  const { username, isAdmin, theme, setTheme } = useAccount();
 
   return (
     <div className="flex flex-col gap-6">
@@ -203,7 +138,7 @@ export default function ProfilePage() {
           {username && (
             <>
               <Separator />
-              <AccountSection username={username} />
+              <AccountSection username={username} isAdmin={isAdmin} />
             </>
           )}
         </>

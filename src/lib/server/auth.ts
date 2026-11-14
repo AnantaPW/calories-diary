@@ -145,6 +145,14 @@ export async function setPassword(userId: string, password: string): Promise<voi
   }));
 }
 
+/** Removes an account's login. False when there was no such account. */
+export async function deleteUser(userId: string): Promise<boolean> {
+  return updateJson<UsersFile, boolean>(USERS_FILE(), emptyUsers, (file) => {
+    const users = file.users.filter((u) => u.id !== userId);
+    return { next: { ...file, users }, result: users.length !== file.users.length };
+  });
+}
+
 // ---- Sessions ------------------------------------------------------------
 
 export const SESSION_COOKIE = "cd_session";
@@ -234,6 +242,9 @@ export async function deleteOtherSessions(userId: string, keepTokenHash: string)
     result: undefined,
   }));
 }
+
+/** Ends every session of a user (admin password reset and account delete). */
+export const deleteAllSessions = (userId: string) => deleteOtherSessions(userId, "");
 
 // ---- Rate limiting -------------------------------------------------------
 

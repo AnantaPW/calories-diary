@@ -98,10 +98,10 @@ export default function DaySummary({ entries, target, size = "large" }: Props) {
           })}
           {macroTotal === 0 && consumed > 0 && (
             <p className="text-xs text-muted-foreground">
-              Add protein, carbs and fat to foods to see where the calories came from.
+              Add macros to foods to see where calories came from.
             </p>
           )}
-          {macroTotal > 0 && <p className="text-xs text-muted-foreground">Share of the calories that came from each.</p>}
+          {macroTotal > 0 && <p className="text-xs text-muted-foreground">% of calories from each.</p>}
         </div>
       </CardContent>
     </Card>

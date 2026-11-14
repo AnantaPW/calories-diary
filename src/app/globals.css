@@ -309,6 +309,26 @@
     0 16px 32px -16px light-dark(color-mix(in oklab, var(--foreground) 30%, transparent), transparent);
 }
 
+/*
+ * First-run setup: each question slides in from the side it came from
+ * (Next from the right, Back from the left), so the steps read as a row.
+ * Once per step, on the panel timing; reduced motion drops it via the base rule.
+ */
+.step-in {
+  animation: step-in var(--m-panel) var(--m-ease);
+}
+
+.step-in[data-dir="back"] {
+  --step-from: -16px;
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    translate: var(--step-from, 16px) 0;
+  }
+}
+
 /* A food that was just added: fades from a theme-colour tint to normal. */
 .just-added {
   animation: just-added 1.5s ease-out;

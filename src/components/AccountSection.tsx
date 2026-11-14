@@ -3,7 +3,8 @@
 import { useId, useState, type FormEvent } from "react";
 import { passwordProblem } from "@/lib/userData";
 import { reloadTo } from "@/lib/client/navigate";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -12,7 +13,7 @@ import { Spinner } from "@/components/ui/spinner";
 type PwField = "current" | "next" | "confirm";
 
 /** Who is signed in, change password, and log out. */
-export default function AccountSection({ username }: { username: string }) {
+export default function AccountSection({ username, isAdmin }: { username: string; isAdmin: boolean }) {
   const id = useId();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -29,7 +30,7 @@ export default function AccountSection({ username }: { username: string }) {
     if (!current) return setError({ field: "current", text: "Enter your current password." });
     const problem = passwordProblem(next, username);
     if (problem) return setError({ field: "next", text: problem });
-    if (confirm !== next) return setError({ field: "confirm", text: "The two new passwords don't match." });
+    if (confirm !== next) return setError({ field: "confirm", text: "Passwords don't match." });
 
     setBusy(true);
     setError(null);
@@ -91,10 +92,17 @@ export default function AccountSection({ username }: { username: string }) {
             Logged in as <span className="font-medium text-foreground">{username}</span>
           </p>
         </div>
-        <Button variant="outline" disabled={loggingOut} onClick={logOut}>
-          {loggingOut && <Spinner data-icon="inline-start" />}
-          {loggingOut ? "Logging out…" : "Log out"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {isAdmin && (
+            <Link href="/admin" className={buttonVariants({ variant: "outline" })}>
+              Admin
+            </Link>
+          )}
+          <Button variant="outline" disabled={loggingOut} onClick={logOut}>
+            {loggingOut && <Spinner data-icon="inline-start" />}
+            {loggingOut ? "Logging out…" : "Log out"}
+          </Button>
+        </div>
       </div>
 
       <Separator />
@@ -109,7 +117,7 @@ export default function AccountSection({ username }: { username: string }) {
               {passwordField("confirm", "Confirm new password", confirm, setConfirm, "new-password")}
             </div>
             <FieldDescription className="text-xs">
-              At least 8 characters. Changing it logs you out everywhere else.
+              At least 8 characters. Logs you out on other devices.
             </FieldDescription>
             <div className="flex flex-col items-start gap-3">
               {/* Both live regions stay mounted so screen readers hear the message. */}

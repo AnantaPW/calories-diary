@@ -9,7 +9,7 @@ export default function NotFound() {
         <CardTitle>
           <h1 className="type-section">Page not found</h1>
         </CardTitle>
-        <CardDescription>This address doesn&apos;t match any page in the diary.</CardDescription>
+        <CardDescription>This page doesn&apos;t exist.</CardDescription>
       </CardHeader>
       <CardFooter>
         <Link href="/" className={buttonVariants()}>

@@ -31,12 +31,12 @@ export default function DayDetail({ date, today, entries, target }: Props) {
           </EmptyMedia>
           <EmptyTitle>Nothing logged</EmptyTitle>
           <EmptyDescription>
-            Nothing logged on {formatDayShort(date)}. If you remember what you ate, you can still add it.
+            You can still add what you ate on {formatDayShort(date)}.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button className="w-full" onClick={() => openLog({ date })}>
-            Add food to this day
+            Add food
           </Button>
         </EmptyContent>
       </Empty>

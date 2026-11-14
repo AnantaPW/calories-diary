@@ -85,12 +85,14 @@ export function useProfile() {
   return useMemo(
     () => ({
       profile,
+      /** False until the person saves a profile; the target is a placeholder until then. */
+      hasProfile: state.status === "ready" && state.data.profile !== null,
       setProfile: saveProfile,
       loaded: state.status !== "loading",
       error: state.status === "error",
       targetFor,
     }),
-    [profile, state.status, targetFor],
+    [profile, state, targetFor],
   );
 }
 
@@ -99,6 +101,7 @@ export function useAccount() {
   const state = useDiaryState();
   return {
     username: state.status === "ready" ? state.username : null,
+    isAdmin: state.status === "ready" && state.isAdmin,
     theme: state.status === "ready" ? state.data.settings : DEFAULT_THEME,
     loaded: state.status !== "loading",
     setTheme: saveSettings,

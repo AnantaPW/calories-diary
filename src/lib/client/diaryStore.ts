@@ -17,7 +17,7 @@ import { showToast } from "./uiStore";
 export type DiaryState =
   | { status: "loading" }
   | { status: "error" }
-  | { status: "ready"; username: string; data: UserData };
+  | { status: "ready"; username: string; isAdmin: boolean; data: UserData };
 
 let state: DiaryState = { status: "loading" };
 let started = false;
@@ -45,7 +45,7 @@ async function load() {
     if (response.status === 401) return goToLogin();
     if (!response.ok) return setState({ status: "error" });
     const me = (await response.json()) as MeResponse;
-    setState({ status: "ready", username: me.username, data: me.data });
+    setState({ status: "ready", username: me.username, isAdmin: me.isAdmin, data: me.data });
   } catch {
     setState({ status: "error" });
   }

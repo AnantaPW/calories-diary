@@ -40,7 +40,7 @@ export default function HistoryPage() {
   const heading = (
     <div>
       <h1 className="type-title">History</h1>
-      <p className="text-sm text-muted-foreground">Each day against the target you had at the time.</p>
+      <p className="text-sm text-muted-foreground">Each day against that day&apos;s target.</p>
     </div>
   );
 
@@ -149,7 +149,7 @@ export default function HistoryPage() {
               </li>
               <li className="flex items-center gap-2">
                 <PlateRing segments={[{ key: "d", value: 130, color: "var(--primary)" }]} target={100} size={22} stroke={3} />
-                Over target (amber outside)
+                Over target (amber)
               </li>
               <li className="flex items-center gap-2">
                 <span className="block size-5 rounded-md border border-muted-foreground" aria-hidden="true" />
@@ -169,8 +169,7 @@ export default function HistoryPage() {
                   </EmptyMedia>
                   <EmptyTitle>No history yet</EmptyTitle>
                   <EmptyDescription>
-                    Your history fills in as you log food. Each day you log becomes a small plate, filled by how much
-                    of your target you ate.
+                    Each day you log shows here as a plate, filled by how much of your target you ate.
                   </EmptyDescription>
                 </EmptyHeader>
                 <EmptyContent className="items-start">
@@ -234,7 +233,7 @@ export default function HistoryPage() {
               </>
             ) : (
               <CardContent className="text-sm text-muted-foreground">
-                Pick a day in the calendar to see what you ate.
+                Pick a day to see what you ate.
               </CardContent>
             )}
           </Card>
