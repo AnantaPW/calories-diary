@@ -1,4 +1,4 @@
-import type { Accent } from "./theme";
+import type { Theme } from "./theme";
 import type { FoodEntry, TargetChange, UserProfile } from "./types";
 
 /** Everything stored for one person (data/users/<id>.json). */
@@ -8,7 +8,7 @@ export interface UserData {
   profile: UserProfile | null;
   targets: TargetChange[];
   entries: FoodEntry[];
-  settings: { accent: Accent };
+  settings: Theme;
 }
 
 /** What GET /api/me returns. */

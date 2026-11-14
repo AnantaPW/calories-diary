@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useMediaQuery } from "@/hooks/useClient";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { CloseIcon } from "./icons";
 
 interface Props {
@@ -11,44 +15,41 @@ interface Props {
 }
 
 /**
- * A native modal dialog: bottom sheet on phones, centred from 640px.
- * The browser handles Escape, the focus trap and returning focus on close.
+ * One wrapper for every overlay: a bottom drawer on phones, a centred dialog
+ * from 640px. Base UI handles Escape, the focus trap and returning focus.
  */
 export default function Sheet({ open, onClose, title, children }: Props) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const titleId = useId();
+  const wide = useMediaQuery("(min-width: 640px)");
+  const onOpenChange = (next: boolean) => {
+    if (!next) onClose();
+  };
 
-  useEffect(() => {
-    const dialog = ref.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
+  if (wide) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-h-[88dvh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="type-section pr-10">{title}</DialogTitle>
+          </DialogHeader>
+          {children}
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
-    <dialog
-      ref={ref}
-      className="sheet"
-      aria-labelledby={titleId}
-      onClose={onClose}
-      onClick={(e) => {
-        // A click on the dialog element itself is a click on the backdrop.
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      {open && (
-        <>
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <h2 id={titleId} className="pt-2 text-lg font-semibold">
-              {title}
-            </h2>
-            <button type="button" className="btn-icon" onClick={onClose} aria-label="Close">
-              <CloseIcon />
-            </button>
-          </div>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="rounded-b-none rounded-t-[20px] [--drawer-inset:0px]">
+        <DrawerHeader className="flex-row items-start justify-between gap-3 text-left">
+          <DrawerTitle className="type-section pt-2">{title}</DrawerTitle>
+          <DrawerClose render={<Button variant="ghost" size="icon" aria-label="Close" />}>
+            <CloseIcon />
+          </DrawerClose>
+        </DrawerHeader>
+        <div className="overflow-y-auto overscroll-contain px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {children}
-        </>
-      )}
-    </dialog>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

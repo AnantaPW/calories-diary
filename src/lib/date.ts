@@ -56,11 +56,6 @@ export function shiftMonthKey(monthKey: string, months: number): string {
   return toDateKey(new Date(y, m - 1 + months, 1)).slice(0, 7);
 }
 
-export function daysInMonth(monthKey: string): number {
-  const [y, m] = monthKey.split("-").map(Number);
-  return new Date(y, m, 0).getDate();
-}
-
 /** e.g. "November 2026" */
 export function formatMonthKey(monthKey: string): string {
   return fromDateKey(`${monthKey}-01`).toLocaleDateString(undefined, {
@@ -72,34 +67,4 @@ export function formatMonthKey(monthKey: string): string {
 /** e.g. "November" */
 export function formatMonthName(monthKey: string): string {
   return fromDateKey(`${monthKey}-01`).toLocaleDateString(undefined, { month: "long" });
-}
-
-/**
- * The month as rows of 7 cells, weeks starting on Monday.
- * Cells outside the month are null.
- */
-export function monthMatrix(monthKey: string): (string | null)[][] {
-  const first = fromDateKey(`${monthKey}-01`);
-  const lead = (first.getDay() + 6) % 7; // Monday = 0
-  const total = daysInMonth(monthKey);
-  const cells: (string | null)[] = Array.from({ length: lead }, () => null);
-  for (let d = 1; d <= total; d++) {
-    cells.push(`${monthKey}-${String(d).padStart(2, "0")}`);
-  }
-  while (cells.length % 7 !== 0) cells.push(null);
-  const weeks: (string | null)[][] = [];
-  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
-  return weeks;
-}
-
-/** Monday-first weekday names, e.g. { short: "Mon", long: "Monday" }. */
-export function weekdayNames(): { short: string; long: string }[] {
-  // 2024-01-01 was a Monday.
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(2024, 0, 1 + i);
-    return {
-      short: d.toLocaleDateString(undefined, { weekday: "short" }),
-      long: d.toLocaleDateString(undefined, { weekday: "long" }),
-    };
-  });
 }

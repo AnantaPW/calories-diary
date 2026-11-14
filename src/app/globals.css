@@ -1,76 +1,253 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 /*
- * Theme: warm charcoal, "notebook at night". Dark is the only theme because
- * the diary is mostly opened at dinner and before bed.
- * Green is the one core colour. Amber (over) means "over target" and nothing
- * else. Red (danger) is reserved for removing things.
- * Every text pair below is checked at WCAG AA (lowest: muted on the rose
- * focal tint, 5.22:1).
+ * The components' dark: styles follow the mode set on <html> by the server:
+ * data-mode="dark", or "system" while the device prefers dark.
  */
-@theme {
-  --color-bg: #15140f;
-  --color-surface: #1e1d18;
-  --color-surface-2: #27261f;
-  --color-line: #34322a;
-  --color-ink: #ece8dd;
-  --color-muted: #a39e8f;
-  --color-brand: #5cc98a;
-  --color-brand-strong: #77d69e;
-  --color-on-brand: #12110d;
-  --color-over: #e8a33d;
-  --color-danger: #f07a6a;
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  /* Headings and focal numbers: friendly, slightly hand-made grotesque. */
-  --font-display: var(--font-bricolage), var(--font-geist-sans), ui-sans-serif, sans-serif;
+@custom-variant dark {
+  &:is([data-mode="dark"] *) {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:is([data-mode="system"] *) {
+      @slot;
+    }
+  }
+}
+
+/*
+ * Theme: a plate on a table. Dark (evenings) is a warm brown table with one
+ * lighter "ceramic" plate surface per screen. Light (daylight) is a pale stone
+ * table with white "porcelain". The plate is always the brightest surface.
+ * Every colour is written once as light-dark(light, dark); the mode on <html>
+ * sets color-scheme, which picks the side (docs/light-mode-plan.md).
+ * The theme colour (--primary) is the one core colour. Amber (--over) means
+ * "over target" and nothing else. Red (--destructive) is only for removing.
+ * Checked at WCAG AA: ink on table 15.29:1, muted on board 6.67:1 and on
+ * ceramic 5.83:1, herb on ceramic 7.20:1, amber on ceramic 6.89:1.
+ * Light: ink on stone 12.17:1, smoke on stone 5.28:1 and on porcelain 6.90:1.
+ */
+:root {
+  /* Also makes native date pickers, selects and scrollbars follow the mode. */
+  color-scheme: dark;
+  --radius: 10px;
+
+  --background: light-dark(#e3e0d8, #16130e); /* table: stone / brown */
+  --card: light-dark(#f3f1ec, #1f1c16); /* board */
+  --popover: var(--card);
+  --plate: light-dark(#fffefb, #2b271f); /* porcelain / ceramic: the focal surface */
+  --foreground: light-dark(#24211b, #eee9dd); /* ink */
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --muted-foreground: light-dark(#5f594b, #a8a291); /* smoke */
+
+  /* Hover and fill steps: between board and ceramic (dark), just below board (light). */
+  --muted: light-dark(#ebe8e1, #2b271f);
+  --accent: var(--muted);
+  --accent-foreground: var(--foreground);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --border: light-dark(#cfc9bc, #3a352b);
+  --input: var(--border);
+
+  --primary: light-dark(#1a6e40, #5cc98a); /* herb */
+  --primary-foreground: light-dark(#ffffff, #16130e);
+  --ring: var(--primary);
+  /* Light: chili 4.58 and amber 4.72 on stone, 5.99 and 6.18 on porcelain. */
+  --destructive: light-dark(#b3362a, #f07a6a); /* chili */
+  --over: light-dark(#925000, #e8a33d); /* amber */
 
   /*
-   * Tones derived from the theme colour, so every accent gets them for free.
-   * focal: the one most important card per screen (muted text on it 5.2:1+).
-   * meal-1..4: arcs of the plate ring, tinted toward the text colour (never
-   * darker than the accent, which would drop below 3:1 against the card).
+   * Meal arcs, from the theme colour so every theme gets them. Dark: tinted
+   * toward ink. Light: toward ink would end near black, so lunch steps toward
+   * the porcelain instead. Every light arc keeps 3.07:1 or more on porcelain,
+   * and neighbours around the ring differ by 1.5:1 or more, in all 7 colours.
    */
-  --color-focal: color-mix(in oklab, var(--color-brand) 10%, var(--color-surface));
-  --color-meal-1: var(--color-brand);
-  --color-meal-2: color-mix(in oklab, var(--color-brand) 72%, var(--color-ink));
-  --color-meal-3: color-mix(in oklab, var(--color-brand) 48%, var(--color-ink));
-  --color-meal-4: color-mix(in oklab, var(--color-brand) 26%, var(--color-ink));
+  --chart-1: var(--primary);
+  --chart-2: light-dark(
+    color-mix(in oklab, var(--primary) 68%, var(--plate)),
+    color-mix(in oklab, var(--primary) 72%, var(--foreground))
+  );
+  --chart-3: light-dark(
+    color-mix(in oklab, var(--primary) 78%, var(--foreground)),
+    color-mix(in oklab, var(--primary) 48%, var(--foreground))
+  );
+  --chart-4: light-dark(
+    color-mix(in oklab, var(--primary) 34%, var(--foreground)),
+    color-mix(in oklab, var(--primary) 26%, var(--foreground))
+  );
+  --chart-5: var(--muted-foreground);
+
+  /*
+   * Motion: one set of timings for every control. Hover steps in fast and
+   * out a little faster, a press is quicker still. One ease-out, no bounce.
+   */
+  --m-in: 150ms;
+  --m-out: 120ms;
+  --m-press: 90ms;
+  --m-panel: 200ms;
+  --m-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Table grain: pale flecks on the brown table, ink flecks on the stone (5%, keeps smoke text above 4.5:1). */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .93 0 0 0 0 .9 0 0 0 0 .84 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-daylight: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .14 0 0 0 0 .13 0 0 0 0 .1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-:root {
-  /* Native date pickers, selects and scrollbars follow the dark theme. */
-  color-scheme: dark;
+:root[data-mode="light"] {
+  color-scheme: light;
+  --grain: var(--grain-daylight);
+}
+
+:root[data-mode="system"] {
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-mode="system"] {
+    --grain: var(--grain-daylight);
+  }
 }
 
 /*
- * Theme colour (Profile > Theme colour). Only the main colour changes;
- * amber, red and the surfaces stay fixed. Values match lib/theme.ts.
- * Contrast on #27261F / dark button text: blue 6.59 / 8.20, lavender
- * 6.95 / 8.65, rose 7.38 / 9.18 (green: 7.36 / 9.15).
+ * Theme colour (Profile > Theme). Only the main colour changes; the arcs and
+ * focus ring follow it. Values match lib/theme.ts, as light-dark(light, dark).
+ * Dark, on ceramic / dark button text: blue 6.59 / 8.20, lavender 6.95 / 8.65,
+ * rose 7.38 / 9.18, teal 7.71 / 9.61, lime 9.43 / 11.75, hibiscus 6.04 / 7.52.
+ * Light, on stone / white button text: herb 4.75 / 6.27, blue 4.85 / 6.39,
+ * lavender 4.56 / 6.01, rose 4.93 / 6.50, teal 4.70 / 6.20, lime 4.86 / 6.41,
+ * hibiscus 4.72 / 6.23.
  */
 :root[data-accent="blue"] {
-  --color-brand: #6ab0f3;
-  --color-brand-strong: #8cc2f6;
+  --primary: light-dark(#2660a3, #6ab0f3);
 }
 
 :root[data-accent="lavender"] {
-  --color-brand: #b9a3f5;
-  --color-brand-strong: #cbb9f8;
+  --primary: light-dark(#6650c2, #b9a3f5);
 }
 
 :root[data-accent="rose"] {
-  --color-brand: #f29bbe;
-  --color-brand-strong: #f6b4cf;
+  --primary: light-dark(#a3355f, #f29bbe);
 }
 
-body {
-  background: var(--color-bg);
-  color: var(--color-ink);
+:root[data-accent="teal"] {
+  --primary: light-dark(#0b6d64, #3fcfc0);
+}
+
+:root[data-accent="lime"] {
+  --primary: light-dark(#4a680a, #b5dc4f);
+}
+
+:root[data-accent="hibiscus"] {
+  --primary: light-dark(#a2318f, #f27ad6);
+}
+
+@theme inline {
+  /* Geist: even-width numerals keep calorie columns aligned. */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Bricolage Grotesque: titles and focal numbers. */
+  --font-heading: var(--font-bricolage), var(--font-geist-sans), ui-sans-serif, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-plate: var(--plate);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-over: var(--over);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* 10px controls, 16px cards and dialogs, 24px plate card and toasts. */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: var(--radius);
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-3xl: 24px;
+  --radius-4xl: 24px;
+
+  /* Flat surfaces: only drawers, dialogs and toasts cast a shadow. */
+  --shadow-xs: 0 0 #0000;
+}
+
+/*
+ * The hover and press layer for every control: colours, focus ring,
+ * transform and opacity only (never size or position), on the motion tokens.
+ */
+@utility transition-ui {
+  transition-property: color, background-color, border-color, outline-color, box-shadow, transform, translate, scale, rotate, opacity;
+  transition-timing-function: var(--m-ease);
+  transition-duration: var(--m-out);
+
+  &:hover {
+    transition-duration: var(--m-in);
+  }
+
+  &:active {
+    transition-duration: var(--m-press);
+  }
+}
+
+@utility type-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.75rem, 1.5rem + 1vw, 2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+@utility type-focal {
+  font-family: var(--font-heading);
+  font-size: clamp(3rem, 2.4rem + 3vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility type-section {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* The table: a very faint linen grain (static SVG noise, about 0.5 KB), so it reads as a surface. */
+    background-image: var(--grain);
+  }
+
+  html {
+    @apply font-sans;
+  }
+
   a[href],
-  button,
+  button:not(:disabled),
   summary,
   select,
   label,
@@ -78,14 +255,9 @@ body {
     cursor: pointer;
   }
 
-  button:disabled,
-  input:disabled,
-  select:disabled {
-    cursor: not-allowed;
-  }
-
+  /* Controls without their own ring (plain links, the bottom bar) still show focus. */
   :focus-visible {
-    outline: 2px solid var(--color-brand);
+    outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
 
@@ -95,122 +267,77 @@ body {
     *::after {
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
+      transition-delay: 0s !important;
+      /* Loops (spinner, skeleton pulse) rest after one tiny run instead of flickering. */
+      animation-iteration-count: 1 !important;
     }
   }
 }
 
 /*
- * Shared component classes live in the components layer so a utility on the
- * same element (e.g. `card px-2`) can still override them.
+ * The plate card's glaze, so the ring sits in a dish. Ordinary cards stay flat.
+ * Evening: a soft light from above with a hint of the theme colour, a thin rim.
+ * Daylight: a white top edge, a faint shade toward the rim, and the only
+ * shadow in the app (dark mode has none: surface steps do the lifting).
  */
-@layer components {
-/* Calorie figures line up in columns: numbers are the content of this app. */
-.num {
-  font-variant-numeric: tabular-nums;
+[data-slot="card"][data-variant="plate"],
+.plate-glaze {
+  background-image:
+    radial-gradient(
+      120% 80% at 50% 0%,
+      light-dark(
+        transparent,
+        color-mix(in oklab, color-mix(in oklab, var(--foreground) 70%, var(--primary)) 9%, transparent)
+      ),
+      transparent 70%
+    ),
+    /* Daylight: the porcelain shades very slightly toward its rim, like a dish. */
+    radial-gradient(
+      130% 100% at 50% 0%,
+      transparent 55%,
+      light-dark(color-mix(in oklab, var(--foreground) 4%, transparent), transparent)
+    );
+  box-shadow:
+    inset 0 1px 0 light-dark(#ffffff, color-mix(in oklab, var(--foreground) 10%, transparent)),
+    inset 0 0 0 1px
+      light-dark(
+        color-mix(in oklab, var(--foreground) 7%, transparent),
+        color-mix(in oklab, var(--foreground) 5%, transparent)
+      ),
+    /* Daylight only: the plate sits on the table and casts a soft contact shadow. */
+    0 1px 2px light-dark(color-mix(in oklab, var(--foreground) 10%, transparent), transparent),
+    0 16px 32px -16px light-dark(color-mix(in oklab, var(--foreground) 30%, transparent), transparent);
 }
 
-/* Display type: page titles and the focal number on each screen. */
-.title {
-  @apply font-display text-[1.75rem] font-semibold leading-tight tracking-tight sm:text-[2rem];
-}
-
-.focal-number {
-  @apply font-display font-bold leading-none tracking-tight;
-  font-variant-numeric: tabular-nums;
-}
-
-.section-title {
-  @apply font-display text-lg font-semibold;
-}
-
-.field-label {
-  @apply mb-1 block text-sm font-medium text-ink;
-}
-
-.input {
-  @apply min-h-11 w-full rounded-[10px] border border-line bg-surface-2 px-3 py-2 text-base text-ink placeholder:text-muted hover:border-muted;
-}
-
-/* Radius steps: 24px focal card, 16px cards, 10px controls. */
-.card {
-  @apply rounded-2xl border border-line bg-surface p-4 sm:p-5;
-}
-
-/* The one most important card on a screen: tinted with the theme colour. */
-.card-focal {
-  @apply rounded-3xl border border-line bg-focal p-5 sm:p-6;
-}
-
-.btn-primary {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-brand px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-strong active:translate-y-px disabled:opacity-50 disabled:hover:bg-brand;
-}
-
-.btn-quiet {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-line bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-surface-2 active:translate-y-px disabled:opacity-50;
-}
-
-/* Square 44px control for icon-only actions. */
-.btn-icon {
-  @apply inline-flex size-11 shrink-0 items-center justify-center rounded-[10px] border border-line bg-surface text-ink hover:bg-surface-2 active:translate-y-px disabled:opacity-40;
-}
-
-.link {
-  @apply font-medium text-brand underline-offset-4 hover:underline;
-}
-
-/* A food that was just added: fades from the focal tint to normal. */
+/* A food that was just added: fades from a theme-colour tint to normal. */
 .just-added {
   animation: just-added 1.5s ease-out;
 }
 
+/* Diary day switch: only the plate morphs (week strip to big plate); the rest swaps at once. */
+::view-transition-group(day-plate) {
+  animation-duration: 300ms;
+  animation-timing-function: var(--m-ease);
 }
 
-/*
- * Sheet: slides up from the bottom on phones, centred dialog from 640px.
- * It is the only element with a shadow, because it really sits above the page.
- */
-dialog.sheet {
-  margin: auto auto 0;
-  width: 100%;
-  max-width: 100%;
-  max-height: 88dvh;
-  overflow-y: auto;
-  border: 1px solid var(--color-line);
-  border-bottom: 0;
-  border-radius: 20px 20px 0 0;
-  background: var(--color-surface);
-  color: var(--color-ink);
-  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
-  box-shadow: 0 -12px 40px rgb(0 0 0 / 0.45);
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
 }
 
-dialog.sheet[open] {
-  animation: sheet-in 180ms ease-out;
+/* A plate arc whose meal just got food: brightens once, with the row highlight. */
+.arc-pulse {
+  animation: arc-pulse 900ms var(--m-ease);
 }
 
-dialog.sheet::backdrop {
-  background: rgb(0 0 0 / 0.6);
-}
-
-@media (min-width: 640px) {
-  dialog.sheet {
-    margin: auto;
-    max-width: 28rem;
-    border-bottom: 1px solid var(--color-line);
-    border-radius: 16px;
-    padding: 1.25rem;
-  }
-}
-
-@keyframes sheet-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
+@keyframes arc-pulse {
+  35% {
+    filter: brightness(1.6);
   }
 }
 
 @keyframes just-added {
   from {
-    background-color: color-mix(in oklab, var(--color-brand) 22%, var(--color-surface));
+    background-color: color-mix(in oklab, var(--primary) 22%, var(--card));
   }
 }

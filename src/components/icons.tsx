@@ -112,3 +112,27 @@ export const CupIcon = (p: IconProps) => (
     <path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5zM16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M8 3.5v2.5M11.5 3.5v2.5" />
   </Glyph>
 );
+
+/**
+ * Empty states: a clean plate from above with a fork and knife, in the same
+ * square-ended line as the glyphs. Muted, with the rim in the theme colour.
+ */
+export const CleanPlateIcon = (p: IconProps) => (
+  <svg
+    width="96"
+    height="64"
+    viewBox="0 0 72 48"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.75"
+    strokeLinecap="square"
+    strokeLinejoin="miter"
+    aria-hidden="true"
+    {...p}
+  >
+    <circle cx="36" cy="24" r="18" stroke="var(--primary)" />
+    <circle cx="36" cy="24" r="12" />
+    <path d="M8 8v8M11 8v8M14 8v8M8 16h6M11 16v24" />
+    <path d="M61 8c-3 3-4 9-4 14h4M61 8v32" />
+  </svg>
+);

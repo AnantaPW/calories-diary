@@ -3,11 +3,12 @@
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import { useToday } from "@/hooks/useClient";
-import { useEntries } from "@/hooks/useDiary";
+import { useEntries, useProfile } from "@/hooks/useDiary";
 import { closeLog, markRecent, showToast, uiStore, type LogRequest } from "@/lib/client/uiStore";
 import { formatDayLong } from "@/lib/date";
 import { MEAL_TYPES, type FoodEntry } from "@/lib/types";
 import FoodEntryForm from "./FoodEntryForm";
+import { MealArc } from "./MealGlyph";
 import Sheet from "./Sheet";
 
 type NewEntry = Omit<FoodEntry, "id" | "createdAt">;
@@ -17,11 +18,14 @@ export const mealLabel = (meal: string) => MEAL_TYPES.find((m) => m.value === me
 /** Saves foods from any Add food form and says so. */
 export function useAddFoods() {
   const { addEntries } = useEntries();
+  const { targetFor } = useProfile();
   return (added: NewEntry[]) => {
     if (added.length === 0) return;
     markRecent(addEntries(added));
+    const { meal, date } = added[0];
     const what = added.length === 1 ? added[0].name : `${added.length} items`;
-    showToast(`Added ${what} to ${mealLabel(added[0].meal)}`);
+    const kcal = added.reduce((sum, e) => sum + e.calories, 0);
+    showToast(`Added ${what} to ${mealLabel(meal)}`, undefined, <MealArc meal={meal} kcal={kcal} target={targetFor(date)} />);
   };
 }
 

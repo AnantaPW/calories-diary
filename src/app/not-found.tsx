@@ -1,13 +1,21 @@
 import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function NotFound() {
   return (
-    <div className="card">
-      <h1 className="text-xl font-semibold">Page not found</h1>
-      <p className="mt-1 text-sm text-muted">This address doesn&apos;t match any page in the diary.</p>
-      <Link href="/" className="btn-primary mt-4">
-        Back to today
-      </Link>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <h1 className="type-section">Page not found</h1>
+        </CardTitle>
+        <CardDescription>This address doesn&apos;t match any page in the diary.</CardDescription>
+      </CardHeader>
+      <CardFooter>
+        <Link href="/" className={buttonVariants()}>
+          Back to today
+        </Link>
+      </CardFooter>
+    </Card>
   );
 }

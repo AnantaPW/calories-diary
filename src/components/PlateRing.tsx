@@ -1,9 +1,16 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useEffect, useState, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+
+/* Entrance: each arc draws for ARC_MS, the next one starting ARC_STAGGER_MS later. */
+const ARC_MS = 700;
+const ARC_STAGGER_MS = 120;
 
 export interface PlateSegment {
   key: string;
   value: number;
-  /** CSS colour, e.g. "var(--color-meal-1)". */
+  /** CSS colour, e.g. "var(--chart-1)". */
   color: string;
 }
 
@@ -18,6 +25,12 @@ interface Props {
   label?: string;
   children?: ReactNode;
   className?: string;
+  /** Draw the arcs from an empty rim when it first shows (the entrance moment). */
+  drawIn?: boolean;
+  /** Segment key to light up; the other arcs dim. */
+  lit?: string | null;
+  /** Segment keys that just changed; each arc pulses once. */
+  pulse?: string[];
 }
 
 /**
@@ -34,8 +47,32 @@ export default function PlateRing({
   stroke,
   label,
   children,
-  className = "",
+  className,
+  drawIn = false,
+  lit = null,
+  pulse = [],
 }: Props) {
+  // start: empty rim painted; drawing: arcs grow one after another; done: normal transitions.
+  const [phase, setPhase] = useState<"start" | "drawing" | "done">(drawIn ? "start" : "done");
+  useEffect(() => {
+    if (phase === "done") return;
+    let id = 0;
+    let timer = 0;
+    if (phase === "start") {
+      // Two frames so the empty rim is painted before the arcs grow from it.
+      id = requestAnimationFrame(() => (id = requestAnimationFrame(() => setPhase("drawing"))));
+    } else {
+      timer = window.setTimeout(() => setPhase("done"), ARC_MS + ARC_STAGGER_MS * 5);
+    }
+    return () => {
+      cancelAnimationFrame(id);
+      window.clearTimeout(timer);
+    };
+  }, [phase]);
+  const empty = phase === "start";
+  const enterStyle = (order: number) =>
+    phase === "drawing" ? { transitionDuration: `${ARC_MS}ms`, transitionDelay: `${order * ARC_STAGGER_MS}ms` } : undefined;
+
   const total = segments.reduce((sum, s) => sum + Math.max(0, s.value), 0);
   const over = target > 0 && total > target;
 
@@ -67,15 +104,15 @@ export default function PlateRing({
 
   return (
     <div
-      className={`relative inline-grid shrink-0 place-items-center ${className}`}
+      className={cn("relative inline-grid shrink-0 place-items-center", className)}
       style={{ width: size, height: size }}
       role={label ? "img" : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
     >
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 -rotate-90">
-        <circle cx={center} cy={center} r={r} fill="none" stroke="var(--color-line)" strokeWidth={stroke} />
-        {arcs.map((a) => (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 size-full -rotate-90">
+        <circle cx={center} cy={center} r={r} fill="none" stroke="var(--border)" strokeWidth={stroke} />
+        {arcs.map((a, i) => (
           <circle
             key={a.key}
             cx={center}
@@ -84,9 +121,14 @@ export default function PlateRing({
             fill="none"
             stroke={a.color}
             strokeWidth={stroke}
-            strokeDasharray={`${a.length} ${c}`}
+            strokeDasharray={`${empty ? 0 : a.length} ${c}`}
             strokeDashoffset={-a.start}
-            className="transition-[stroke-dasharray,stroke-dashoffset] duration-400 ease-out"
+            className={cn(
+              "transition-[stroke-dasharray,stroke-dashoffset,opacity] duration-400 ease-(--m-ease)",
+              lit && lit !== a.key && "opacity-35",
+              pulse.includes(a.key) && "arc-pulse",
+            )}
+            style={enterStyle(i)}
           />
         ))}
         {over && (
@@ -95,10 +137,11 @@ export default function PlateRing({
             cy={center}
             r={outerR}
             fill="none"
-            stroke="var(--color-over)"
+            stroke="var(--over)"
             strokeWidth={overStroke}
-            strokeDasharray={`${extra} ${outerC}`}
-            className="transition-[stroke-dasharray] duration-400 ease-out"
+            strokeDasharray={`${empty ? 0 : extra} ${outerC}`}
+            className="transition-[stroke-dasharray] duration-400 ease-(--m-ease)"
+            style={enterStyle(arcs.length)}
           />
         )}
       </svg>
