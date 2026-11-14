@@ -361,3 +361,33 @@
     background-color: color-mix(in oklab, var(--primary) 22%, var(--card));
   }
 }
+
+/*
+ * Today's sky: the sun or moon sits on the arc at --t (0 left, 1 right),
+ * on the same parabola the SVG draws. Animating --t moves it along the curve.
+ * On the first load of a visit it rises from the left end; reduced motion
+ * drops that via the base rule.
+ */
+@property --t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.sky {
+  container-type: inline-size;
+}
+
+.sky-glyph {
+  translate: calc(var(--t) * 100cqw - 50%) calc(var(--t) * (1 - var(--t)) * -136px + 50%);
+}
+
+.sky-glyph[data-rise] {
+  animation: sun-rise 600ms var(--m-ease) backwards;
+}
+
+@keyframes sun-rise {
+  from {
+    --t: 0;
+  }
+}

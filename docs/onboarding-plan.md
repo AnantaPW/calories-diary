@@ -24,7 +24,7 @@ Setup asks the same questions one at a time right after sign-up, shows the targe
 
 | Question | Answer | Reason |
 |---|---|---|
-| Where it lives | A new page, `/welcome` | A real URL survives a reload mid-setup and can be linked from Today. No modal over a diary that has nothing in it yet. |
+| Where it lives | A new page, `/welcome`, drawn as a modal card over the app | A real URL survives a reload mid-setup and can be linked from Today. The modal (owner's call, 2026-11-14) keeps the menu out of reach until people save or skip; Escape counts as Skip, a backdrop click does nothing. |
 | Who sees it | Signed in and `profile === null`. Anyone else at `/welcome` is sent to `/` | One rule, decided on the server from data that already exists. |
 | How people get there | After sign-up, `reloadTo("/welcome")` instead of `"/"`. People with no profile who log in later see a "Set your daily target" card on Today that links to it | New accounts land in setup. Existing accounts that never set a profile get a prompt, not a forced detour. |
 | Can it be skipped | Yes, "Skip for now" goes to Today. The Today card stays until a profile is saved | Logging a meal should never wait on a form. Nothing new is stored for "skipped": the card is driven by `profile === null`. |

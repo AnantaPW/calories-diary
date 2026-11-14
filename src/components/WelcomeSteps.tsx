@@ -19,6 +19,7 @@ import {
   type WelcomeField,
 } from "@/lib/welcome";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Field,
   FieldContent,
@@ -271,57 +272,69 @@ export default function WelcomeSteps() {
   }
 
   const prevLabel = step > 1 ? "Back" : null;
-  const nextLabel = ["", "Next: body", "Next: activity", "See my target", "Save target"][step];
+  const nextLabel = ["", "Next", "Next", "See my target", "Save target"][step];
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground tabular-nums" aria-live="polite">
-          Step {step} of {WELCOME_STEPS}
-        </p>
-        <Link href="/" className={cn(buttonVariants({ variant: "ghost" }), "-mr-3")}>
-          Skip for now
-        </Link>
-      </div>
+    // Modal on purpose: the app behind stays out of reach until people save or skip.
+    // Escape counts as Skip; a stray click on the backdrop does nothing.
+    <Dialog open disablePointerDismissal onOpenChange={(open) => !open && router.push("/")}>
+      <DialogContent
+        showCloseButton={false}
+        initialFocus={headingRef}
+        aria-labelledby={`${id}-heading`}
+        aria-describedby={`${id}-lead`}
+        className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 p-0 sm:max-w-xl"
+      >
+        <div className="flex items-center justify-between gap-3 border-b px-5 py-2 sm:px-6">
+          <p className="text-sm text-muted-foreground tabular-nums" aria-live="polite">
+            Step {step} of {WELCOME_STEPS}
+          </p>
+          <Link href="/" className={cn(buttonVariants({ variant: "ghost" }), "-mr-3")}>
+            Skip for now
+          </Link>
+        </div>
 
-      {/* Keyed by step so each question slides in from the side it came from. */}
-      <div key={step} className="step-in flex flex-col gap-6" data-dir={direction}>
-        <form id={`${id}-form`} onSubmit={handleSubmit} noValidate className="flex flex-col gap-5" aria-labelledby={`${id}-heading`}>
-          <div className="flex flex-col gap-1">
-            <h1 id={`${id}-heading`} ref={headingRef} tabIndex={-1} className="type-title outline-none">
-              {heading.title}
-            </h1>
-            <p className="text-sm text-muted-foreground">{heading.lead}</p>
+        {/* Only the questions scroll; the step count and buttons stay put. */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+          {/* Keyed by step so each question slides in from the side it came from. */}
+          <div key={step} className="step-in flex flex-col gap-6" data-dir={direction}>
+            <form id={`${id}-form`} onSubmit={handleSubmit} noValidate className="flex flex-col gap-5" aria-labelledby={`${id}-heading`}>
+              <div className="flex flex-col gap-1">
+                <h1 id={`${id}-heading`} ref={headingRef} tabIndex={-1} className="type-title outline-none">
+                  {heading.title}
+                </h1>
+                <p id={`${id}-lead`} className="text-sm text-muted-foreground">{heading.lead}</p>
+              </div>
+              {body}
+            </form>
+
+            {/* Outside the form: the theme picker has its own Save button. */}
+            {step === WELCOME_STEPS && (
+              <>
+                <Separator />
+                {loadError ? <StorageError /> : loaded && <ThemePicker saved={theme} onPick={setPickedTheme} />}
+              </>
+            )}
           </div>
-          {body}
-        </form>
+        </div>
 
-        {/* Outside the form: the theme picker has its own Save button. */}
-        {step === WELCOME_STEPS && (
-          <>
-            <Separator />
-            {loadError ? <StorageError /> : loaded && <ThemePicker saved={theme} onPick={setPickedTheme} />}
-            <Separator />
-          </>
-        )}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        {prevLabel && (
-          <Button type="button" variant="outline" disabled={saving} onClick={() => go(step - 1)}>
-            {prevLabel}
+        <div className="flex flex-wrap items-center gap-3 border-t px-5 py-4 sm:px-6">
+          {prevLabel && (
+            <Button type="button" variant="outline" disabled={saving} onClick={() => go(step - 1)}>
+              {prevLabel}
+            </Button>
+          )}
+          <Button
+            type="submit"
+            form={`${id}-form`}
+            className="flex-1 sm:flex-none"
+            disabled={saving || (step === WELCOME_STEPS && !loaded)}
+          >
+            {saving && <Spinner data-icon="inline-start" />}
+            {saving ? "Saving…" : nextLabel}
           </Button>
-        )}
-        <Button
-          type="submit"
-          form={`${id}-form`}
-          className="flex-1 sm:flex-none"
-          disabled={saving || (step === WELCOME_STEPS && !loaded)}
-        >
-          {saving && <Spinner data-icon="inline-start" />}
-          {saving ? "Saving…" : nextLabel}
-        </Button>
-      </div>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
